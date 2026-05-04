@@ -19,6 +19,8 @@ from connector.errors import (
 )
 from connector.middleware.request_id import RequestIDMiddleware
 from connector.registry import registry
+from connector.rpcs._registration import register_rpcs
+from connector.security.auth import APIKeyAuthMiddleware, parse_api_key_config
 from connector.settings import get_settings
 
 log = logging.getLogger("connector.app")
@@ -44,9 +46,16 @@ async def lifespan(app: FastAPI):  # type: ignore[no-untyped-def]
             await app.state.metabase.aclose()
 
 
+def _reset_registry_for_factory() -> None:
+    """Tests build the app multiple times; a fresh registry per build avoids duplicate registers."""
+    registry._rpcs.clear()  # type: ignore[attr-defined]
+
+
 def create_app() -> FastAPI:
     settings = get_settings()
     logging.basicConfig(level=settings.log_level)
+
+    _reset_registry_for_factory()
 
     app = FastAPI(
         title="Modus Data Connector",
@@ -55,6 +64,11 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
+    # Outermost first: request-id, then auth.
+    app.add_middleware(
+        APIKeyAuthMiddleware,
+        key_to_identity=parse_api_key_config(settings.connector_api_keys),
+    )
     app.add_middleware(RequestIDMiddleware)
 
     app.add_exception_handler(ConnectorError, connector_error_handler)  # type: ignore[arg-type]
@@ -83,6 +97,7 @@ def create_app() -> FastAPI:
             "request_id": request.state.request_id,
         }
 
+    register_rpcs(app)
     return app
 
 

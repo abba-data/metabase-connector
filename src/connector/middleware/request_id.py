@@ -19,7 +19,9 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
     ) -> Response:
         rid = request.headers.get(REQUEST_ID_HEADER) or uuid.uuid4().hex
         request.state.request_id = rid
-        request.state.consumer = None  # SEC-01A populates this
+        # consumer is populated downstream by SEC-01A's auth middleware (or tests).
+        if not hasattr(request.state, "consumer"):
+            request.state.consumer = None
         response = await call_next(request)
         response.headers[REQUEST_ID_HEADER] = rid
         return response

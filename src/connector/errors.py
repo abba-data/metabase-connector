@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import Request
+from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
@@ -121,7 +122,7 @@ async def validation_exception_handler(
         message="Request failed validation.",
         request_id=_request_id(request),
         status_code=422,
-        debug={"errors": exc.errors()},
+        debug={"errors": jsonable_encoder(exc.errors())},
     )
 
 
