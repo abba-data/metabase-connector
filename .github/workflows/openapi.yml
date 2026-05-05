@@ -1,0 +1,59 @@
+name: openapi
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  snapshot-current:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - name: regenerate snapshot
+        run: python tools/dump_openapi.py docs/openapi.regen.json
+      - name: assert committed snapshot matches runtime
+        run: |
+          if ! diff -u docs/openapi.json docs/openapi.regen.json; then
+            echo "::error::docs/openapi.json is stale. Run: python tools/dump_openapi.py"
+            exit 1
+          fi
+
+  diff-against-base:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: extract base + head OpenAPI
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/oa
+          git show "${{ github.event.pull_request.base.sha }}:docs/openapi.json" > /tmp/oa/base.json 2>/dev/null \
+            || (echo "base lacks docs/openapi.json — first introduction; skipping diff" && exit 0)
+          cp docs/openapi.json /tmp/oa/head.json
+      - name: openapi-diff (Tufin oasdiff)
+        if: hashFiles('/tmp/oa/base.json') != ''
+        run: |
+          set -euo pipefail
+          docker run --rm -v /tmp/oa:/specs tufin/oasdiff breaking \
+            /specs/base.json /specs/head.json --fail-on ERR | tee /tmp/oa/breaking.txt
+          if grep -q "level=error" /tmp/oa/breaking.txt; then
+            if [ "${{ contains(github.event.pull_request.labels.*.name, 'breaking-change') }}" = "true" ]; then
+              echo "Breaking changes detected, but PR carries 'breaking-change' label — allowed."
+              exit 0
+            fi
+            echo "::error::Breaking OpenAPI changes detected. Add the 'breaking-change' label if intentional."
+            exit 1
+          fi

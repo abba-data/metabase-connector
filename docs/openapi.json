@@ -1,0 +1,2404 @@
+{
+  "components": {
+    "schemas": {
+      "ArrAtRiskInput": {
+        "properties": {
+          "group_by": {
+            "$ref": "#/components/schemas/GroupBy",
+            "default": "overall"
+          },
+          "horizon_days": {
+            "default": 60,
+            "maximum": 730.0,
+            "minimum": 1.0,
+            "title": "Horizon Days",
+            "type": "integer"
+          }
+        },
+        "title": "ArrAtRiskInput",
+        "type": "object"
+      },
+      "ArrAtRiskOutput": {
+        "properties": {
+          "breakdown": {
+            "items": {
+              "$ref": "#/components/schemas/AtRiskBucket"
+            },
+            "title": "Breakdown",
+            "type": "array"
+          },
+          "total_arr_at_risk": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Total Arr At Risk",
+            "type": "string"
+          }
+        },
+        "required": [
+          "total_arr_at_risk",
+          "breakdown"
+        ],
+        "title": "ArrAtRiskOutput",
+        "type": "object"
+      },
+      "AtRiskBucket": {
+        "properties": {
+          "arr": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Arr",
+            "type": "string"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "license_count": {
+            "title": "License Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "key",
+          "arr",
+          "license_count"
+        ],
+        "title": "AtRiskBucket",
+        "type": "object"
+      },
+      "AuditRecord": {
+        "properties": {
+          "caller_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Caller Id"
+          },
+          "connector_version": {
+            "title": "Connector Version",
+            "type": "string"
+          },
+          "consumer_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ConsumerType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Kind"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "latency_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latency Ms"
+          },
+          "parameters": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parameters"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "row_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Row Count"
+          },
+          "rpc_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rpc Name"
+          },
+          "rpc_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rpc Version"
+          },
+          "scope": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Scope",
+            "type": "array"
+          },
+          "source_question_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Question Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AuditStatus"
+          },
+          "timestamp": {
+            "format": "date-time",
+            "title": "Timestamp",
+            "type": "string"
+          }
+        },
+        "required": [
+          "timestamp",
+          "request_id",
+          "status",
+          "connector_version"
+        ],
+        "title": "AuditRecord",
+        "type": "object"
+      },
+      "AuditStatus": {
+        "enum": [
+          "success",
+          "error"
+        ],
+        "title": "AuditStatus",
+        "type": "string"
+      },
+      "CatalogEntry": {
+        "properties": {
+          "deprecated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deprecated At"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "freshness_window_days": {
+            "title": "Freshness Window Days",
+            "type": "integer"
+          },
+          "input_schema": {
+            "additionalProperties": true,
+            "title": "Input Schema",
+            "type": "object"
+          },
+          "last_updated": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Updated"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "output_schema": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output Schema"
+          },
+          "required_scope": {
+            "title": "Required Scope",
+            "type": "string"
+          },
+          "source_question_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Question Id"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "version",
+          "description",
+          "required_scope",
+          "freshness_window_days"
+        ],
+        "title": "CatalogEntry",
+        "type": "object"
+      },
+      "ChannelGroup": {
+        "properties": {
+          "license_count": {
+            "title": "License Count",
+            "type": "integer"
+          },
+          "line_count": {
+            "title": "Line Count",
+            "type": "integer"
+          },
+          "revenue": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Revenue",
+            "type": "string"
+          }
+        },
+        "required": [
+          "revenue",
+          "line_count",
+          "license_count"
+        ],
+        "title": "ChannelGroup",
+        "type": "object"
+      },
+      "ChannelSplitInput": {
+        "properties": {
+          "end_date": {
+            "format": "date",
+            "title": "End Date",
+            "type": "string"
+          },
+          "license_types": {
+            "items": {
+              "enum": [
+                "COMMERCIAL",
+                "ACADEMIC"
+              ],
+              "type": "string"
+            },
+            "title": "License Types",
+            "type": "array"
+          },
+          "start_date": {
+            "format": "date",
+            "title": "Start Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "start_date",
+          "end_date"
+        ],
+        "title": "ChannelSplitInput",
+        "type": "object"
+      },
+      "ChannelSplitOutput": {
+        "properties": {
+          "direct": {
+            "$ref": "#/components/schemas/ChannelGroup"
+          },
+          "partner": {
+            "$ref": "#/components/schemas/ChannelGroup"
+          },
+          "total": {
+            "$ref": "#/components/schemas/ChannelGroup"
+          }
+        },
+        "required": [
+          "partner",
+          "direct",
+          "total"
+        ],
+        "title": "ChannelSplitOutput",
+        "type": "object"
+      },
+      "CheckStatus": {
+        "enum": [
+          "OK",
+          "WATCH",
+          "ACTION"
+        ],
+        "title": "CheckStatus",
+        "type": "string"
+      },
+      "Column": {
+        "properties": {
+          "base_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Type"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "Column",
+        "type": "object"
+      },
+      "ConsumerType": {
+        "enum": [
+          "backend_service_account",
+          "interactive_script",
+          "llm_agent"
+        ],
+        "title": "ConsumerType",
+        "type": "string"
+      },
+      "DataQualityCheck": {
+        "properties": {
+          "check_name": {
+            "title": "Check Name",
+            "type": "string"
+          },
+          "count_or_sample": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Count Or Sample"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CheckStatus"
+          },
+          "threshold_context": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threshold Context"
+          }
+        },
+        "required": [
+          "check_name",
+          "status"
+        ],
+        "title": "DataQualityCheck",
+        "type": "object"
+      },
+      "DataQualitySignalsInput": {
+        "description": "No parameters in v1.",
+        "properties": {},
+        "title": "DataQualitySignalsInput",
+        "type": "object"
+      },
+      "DataQualitySignalsOutput": {
+        "properties": {
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/DataQualityCheck"
+            },
+            "title": "Checks",
+            "type": "array"
+          }
+        },
+        "required": [
+          "checks"
+        ],
+        "title": "DataQualitySignalsOutput",
+        "type": "object"
+      },
+      "DescribeCatalogInput": {
+        "description": "describe_catalog has no parameters.",
+        "properties": {},
+        "title": "DescribeCatalogInput",
+        "type": "object"
+      },
+      "DescribeCatalogOutput": {
+        "properties": {
+          "generated_at": {
+            "format": "date-time",
+            "title": "Generated At",
+            "type": "string"
+          },
+          "rpcs": {
+            "items": {
+              "$ref": "#/components/schemas/CatalogEntry"
+            },
+            "title": "Rpcs",
+            "type": "array"
+          }
+        },
+        "required": [
+          "rpcs",
+          "generated_at"
+        ],
+        "title": "DescribeCatalogOutput",
+        "type": "object"
+      },
+      "Dimension": {
+        "enum": [
+          "channel",
+          "sale_type",
+          "partner"
+        ],
+        "title": "Dimension",
+        "type": "string"
+      },
+      "DimensionDelta": {
+        "properties": {
+          "delta": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Delta",
+            "type": "string"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "period_a": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Period A",
+            "type": "string"
+          },
+          "period_b": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Period B",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "period_a",
+          "period_b",
+          "delta"
+        ],
+        "title": "DimensionDelta",
+        "type": "object"
+      },
+      "DimensionTotal": {
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "revenue": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Revenue",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "revenue"
+        ],
+        "title": "DimensionTotal",
+        "type": "object"
+      },
+      "ExecuteSqlInput": {
+        "properties": {
+          "database_id": {
+            "description": "Metabase database id (see GET /api/database).",
+            "title": "Database Id",
+            "type": "integer"
+          },
+          "parameters": {
+            "description": "Metabase parameter list, e.g. [{'type':'text','target':[...],'value':'...'}].",
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Parameters",
+            "type": "array"
+          },
+          "sql": {
+            "description": "Native SQL to execute against the database.",
+            "minLength": 1,
+            "title": "Sql",
+            "type": "string"
+          },
+          "template_tags": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/MetabaseTemplateTag"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Optional native template-tag declarations keyed by tag name.",
+            "title": "Template Tags"
+          }
+        },
+        "required": [
+          "database_id",
+          "sql"
+        ],
+        "title": "ExecuteSqlInput",
+        "type": "object"
+      },
+      "ExecuteSqlOutput": {
+        "properties": {
+          "columns": {
+            "items": {
+              "$ref": "#/components/schemas/Column"
+            },
+            "title": "Columns",
+            "type": "array"
+          },
+          "executed_at": {
+            "format": "date-time",
+            "title": "Executed At",
+            "type": "string"
+          },
+          "row_count": {
+            "title": "Row Count",
+            "type": "integer"
+          },
+          "rows": {
+            "items": {
+              "items": {},
+              "type": "array"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "rows_truncated": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rows Truncated"
+          },
+          "running_time_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Running Time Ms"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "required": [
+          "columns",
+          "rows",
+          "row_count",
+          "executed_at"
+        ],
+        "title": "ExecuteSqlOutput",
+        "type": "object"
+      },
+      "GroupBy": {
+        "enum": [
+          "overall",
+          "partner",
+          "app"
+        ],
+        "title": "GroupBy",
+        "type": "string"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "HostingType": {
+        "enum": [
+          "Cloud",
+          "DataCenter",
+          "Server"
+        ],
+        "title": "HostingType",
+        "type": "string"
+      },
+      "Kind": {
+        "enum": [
+          "catalog",
+          "raw"
+        ],
+        "title": "Kind",
+        "type": "string"
+      },
+      "License": {
+        "properties": {
+          "addon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Addon"
+          },
+          "company": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company"
+          },
+          "hosting": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hosting"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "license_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "License Type"
+          },
+          "maintenance_end_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Maintenance End Date"
+          },
+          "maintenance_start_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Maintenance Start Date"
+          },
+          "partner": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Partner"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "title": "License",
+        "type": "object"
+      },
+      "LicenseQueryInput": {
+        "properties": {
+          "addon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Addon"
+          },
+          "company": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company"
+          },
+          "hosting": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/HostingType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "license_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LicenseTypeEnum"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "limit": {
+            "default": 100,
+            "maximum": 1000.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "partner": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Partner"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LicenseStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "title": "LicenseQueryInput",
+        "type": "object"
+      },
+      "LicenseQueryOutput": {
+        "properties": {
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/License"
+            },
+            "title": "Rows",
+            "type": "array"
+          }
+        },
+        "required": [
+          "rows"
+        ],
+        "title": "LicenseQueryOutput",
+        "type": "object"
+      },
+      "LicenseStatus": {
+        "enum": [
+          "active",
+          "inactive",
+          "cancelled"
+        ],
+        "title": "LicenseStatus",
+        "type": "string"
+      },
+      "LicenseTypeEnum": {
+        "enum": [
+          "COMMERCIAL",
+          "ACADEMIC"
+        ],
+        "title": "LicenseTypeEnum",
+        "type": "string"
+      },
+      "MetabaseTemplateTag": {
+        "description": "Optional Metabase native template tag declaration.\n\nIf your SQL contains `{{var}}` placeholders, declare them here.\nSee https://www.metabase.com/learn/sql-questions/sql-variables.",
+        "properties": {
+          "default": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "required": {
+            "default": false,
+            "title": "Required",
+            "type": "boolean"
+          },
+          "type": {
+            "description": "One of: text, number, date, dimension.",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "name"
+        ],
+        "title": "MetabaseTemplateTag",
+        "type": "object"
+      },
+      "MrrPoint": {
+        "properties": {
+          "by_customer_type": {
+            "additionalProperties": {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            "title": "By Customer Type",
+            "type": "object"
+          },
+          "by_partner_type": {
+            "additionalProperties": {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            "title": "By Partner Type",
+            "type": "object"
+          },
+          "month": {
+            "format": "date",
+            "title": "Month",
+            "type": "string"
+          },
+          "mrr": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Mrr",
+            "type": "string"
+          }
+        },
+        "required": [
+          "month",
+          "mrr"
+        ],
+        "title": "MrrPoint",
+        "type": "object"
+      },
+      "MrrTrendInput": {
+        "properties": {
+          "months_back": {
+            "default": 24,
+            "maximum": 120.0,
+            "minimum": 1.0,
+            "title": "Months Back",
+            "type": "integer"
+          },
+          "partner_subtype": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Partner Subtype"
+          }
+        },
+        "title": "MrrTrendInput",
+        "type": "object"
+      },
+      "MrrTrendOutput": {
+        "properties": {
+          "series": {
+            "items": {
+              "$ref": "#/components/schemas/MrrPoint"
+            },
+            "title": "Series",
+            "type": "array"
+          }
+        },
+        "required": [
+          "series"
+        ],
+        "title": "MrrTrendOutput",
+        "type": "object"
+      },
+      "PartnerRevenueInput": {
+        "properties": {
+          "consolidate": {
+            "default": true,
+            "title": "Consolidate",
+            "type": "boolean"
+          },
+          "end_date": {
+            "format": "date",
+            "title": "End Date",
+            "type": "string"
+          },
+          "license_types": {
+            "items": {
+              "enum": [
+                "COMMERCIAL",
+                "ACADEMIC"
+              ],
+              "type": "string"
+            },
+            "title": "License Types",
+            "type": "array"
+          },
+          "start_date": {
+            "format": "date",
+            "title": "Start Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "start_date",
+          "end_date"
+        ],
+        "title": "PartnerRevenueInput",
+        "type": "object"
+      },
+      "PartnerRevenueOutput": {
+        "properties": {
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/PartnerRevenueRow"
+            },
+            "title": "Rows",
+            "type": "array"
+          }
+        },
+        "required": [
+          "rows"
+        ],
+        "title": "PartnerRevenueOutput",
+        "type": "object"
+      },
+      "PartnerRevenueRow": {
+        "properties": {
+          "canonical_parent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Canonical Parent"
+          },
+          "distinct_license_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Distinct License Count"
+          },
+          "line_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Line Count"
+          },
+          "net_revenue": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Net Revenue",
+            "type": "string"
+          },
+          "partner": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Partner"
+          }
+        },
+        "required": [
+          "net_revenue"
+        ],
+        "title": "PartnerRevenueRow",
+        "type": "object"
+      },
+      "Period": {
+        "properties": {
+          "end_date": {
+            "format": "date",
+            "title": "End Date",
+            "type": "string"
+          },
+          "start_date": {
+            "format": "date",
+            "title": "Start Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "start_date",
+          "end_date"
+        ],
+        "title": "Period",
+        "type": "object"
+      },
+      "PeriodSummary": {
+        "properties": {
+          "by_dimension": {
+            "items": {
+              "$ref": "#/components/schemas/DimensionTotal"
+            },
+            "title": "By Dimension",
+            "type": "array"
+          },
+          "total": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Total",
+            "type": "string"
+          }
+        },
+        "required": [
+          "total",
+          "by_dimension"
+        ],
+        "title": "PeriodSummary",
+        "type": "object"
+      },
+      "PricingStructure": {
+        "enum": [
+          "cloud_marginal_band",
+          "dc_flat_annual",
+          "server_purchase_renewal"
+        ],
+        "title": "PricingStructure",
+        "type": "string"
+      },
+      "ReadAuditInput": {
+        "properties": {
+          "caller_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Caller Id"
+          },
+          "end_time": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Time"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Kind"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "limit": {
+            "default": 100,
+            "maximum": 1000.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Offset",
+            "type": "integer"
+          },
+          "rpc_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rpc Name"
+          },
+          "start_time": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Time"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AuditStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "title": "ReadAuditInput",
+        "type": "object"
+      },
+      "ReadAuditOutput": {
+        "properties": {
+          "next_offset": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Offset"
+          },
+          "queried_at": {
+            "format": "date-time",
+            "title": "Queried At",
+            "type": "string"
+          },
+          "records": {
+            "items": {
+              "$ref": "#/components/schemas/AuditRecord"
+            },
+            "title": "Records",
+            "type": "array"
+          }
+        },
+        "required": [
+          "records",
+          "queried_at"
+        ],
+        "title": "ReadAuditOutput",
+        "type": "object"
+      },
+      "ResponseMeta": {
+        "properties": {
+          "freshness_window_days": {
+            "description": "Atlassian eventual-consistency window. Recent data within this window may shift on re-run.",
+            "title": "Freshness Window Days",
+            "type": "integer"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/Kind",
+            "default": "catalog"
+          },
+          "request_id": {
+            "description": "Per-request id; threaded into logs and audit.",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "source_question_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Metabase saved-question id that produced this result. Null for raw-SQL.",
+            "title": "Source Question Id"
+          }
+        },
+        "required": [
+          "freshness_window_days",
+          "request_id"
+        ],
+        "title": "ResponseMeta",
+        "type": "object"
+      },
+      "Response_ArrAtRiskOutput_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ArrAtRiskOutput"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ResponseMeta"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "title": "Response[ArrAtRiskOutput]",
+        "type": "object"
+      },
+      "Response_ChannelSplitOutput_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ChannelSplitOutput"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ResponseMeta"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "title": "Response[ChannelSplitOutput]",
+        "type": "object"
+      },
+      "Response_DataQualitySignalsOutput_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/DataQualitySignalsOutput"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ResponseMeta"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "title": "Response[DataQualitySignalsOutput]",
+        "type": "object"
+      },
+      "Response_DescribeCatalogOutput_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/DescribeCatalogOutput"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ResponseMeta"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "title": "Response[DescribeCatalogOutput]",
+        "type": "object"
+      },
+      "Response_ExecuteSqlOutput_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ExecuteSqlOutput"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ResponseMeta"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "title": "Response[ExecuteSqlOutput]",
+        "type": "object"
+      },
+      "Response_LicenseQueryOutput_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/LicenseQueryOutput"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ResponseMeta"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "title": "Response[LicenseQueryOutput]",
+        "type": "object"
+      },
+      "Response_MrrTrendOutput_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/MrrTrendOutput"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ResponseMeta"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "title": "Response[MrrTrendOutput]",
+        "type": "object"
+      },
+      "Response_PartnerRevenueOutput_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/PartnerRevenueOutput"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ResponseMeta"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "title": "Response[PartnerRevenueOutput]",
+        "type": "object"
+      },
+      "Response_ReadAuditOutput_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ReadAuditOutput"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ResponseMeta"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "title": "Response[ReadAuditOutput]",
+        "type": "object"
+      },
+      "Response_RevenueComparisonOutput_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/RevenueComparisonOutput"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ResponseMeta"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "title": "Response[RevenueComparisonOutput]",
+        "type": "object"
+      },
+      "Response_TopPartnersOutput_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/TopPartnersOutput"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ResponseMeta"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "title": "Response[TopPartnersOutput]",
+        "type": "object"
+      },
+      "Response_UpsellOpportunitiesOutput_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/UpsellOpportunitiesOutput"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ResponseMeta"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "title": "Response[UpsellOpportunitiesOutput]",
+        "type": "object"
+      },
+      "RevenueComparisonInput": {
+        "properties": {
+          "dimension": {
+            "$ref": "#/components/schemas/Dimension",
+            "default": "channel"
+          },
+          "period_a": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Period"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Period A"
+          },
+          "period_b": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Period"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Period B"
+          }
+        },
+        "required": [
+          "period_a",
+          "period_b"
+        ],
+        "title": "RevenueComparisonInput",
+        "type": "object"
+      },
+      "RevenueComparisonOutput": {
+        "properties": {
+          "deltas": {
+            "items": {
+              "$ref": "#/components/schemas/DimensionDelta"
+            },
+            "title": "Deltas",
+            "type": "array"
+          },
+          "period_a": {
+            "$ref": "#/components/schemas/PeriodSummary"
+          },
+          "period_b": {
+            "$ref": "#/components/schemas/PeriodSummary"
+          }
+        },
+        "required": [
+          "period_a",
+          "period_b",
+          "deltas"
+        ],
+        "title": "RevenueComparisonOutput",
+        "type": "object"
+      },
+      "TopPartnerRow": {
+        "properties": {
+          "canonical_parent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Canonical Parent"
+          },
+          "net_revenue": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Net Revenue",
+            "type": "string"
+          },
+          "partner": {
+            "title": "Partner",
+            "type": "string"
+          },
+          "rank": {
+            "title": "Rank",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "rank",
+          "partner",
+          "net_revenue"
+        ],
+        "title": "TopPartnerRow",
+        "type": "object"
+      },
+      "TopPartnersInput": {
+        "properties": {
+          "consolidate": {
+            "default": true,
+            "title": "Consolidate",
+            "type": "boolean"
+          },
+          "end_date": {
+            "format": "date",
+            "title": "End Date",
+            "type": "string"
+          },
+          "limit": {
+            "default": 10,
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "start_date": {
+            "format": "date",
+            "title": "Start Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "start_date",
+          "end_date"
+        ],
+        "title": "TopPartnersInput",
+        "type": "object"
+      },
+      "TopPartnersOutput": {
+        "properties": {
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/TopPartnerRow"
+            },
+            "title": "Rows",
+            "type": "array"
+          }
+        },
+        "required": [
+          "rows"
+        ],
+        "title": "TopPartnersOutput",
+        "type": "object"
+      },
+      "UpsellOpportunitiesInput": {
+        "properties": {
+          "horizon_days": {
+            "default": 60,
+            "maximum": 730.0,
+            "minimum": 1.0,
+            "title": "Horizon Days",
+            "type": "integer"
+          },
+          "min_seat_delta": {
+            "default": 1,
+            "minimum": 1.0,
+            "title": "Min Seat Delta",
+            "type": "integer"
+          }
+        },
+        "title": "UpsellOpportunitiesInput",
+        "type": "object"
+      },
+      "UpsellOpportunitiesOutput": {
+        "properties": {
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/UpsellRow"
+            },
+            "title": "Rows",
+            "type": "array"
+          }
+        },
+        "required": [
+          "rows"
+        ],
+        "title": "UpsellOpportunitiesOutput",
+        "type": "object"
+      },
+      "UpsellRow": {
+        "properties": {
+          "app": {
+            "title": "App",
+            "type": "string"
+          },
+          "current_arr": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Current Arr",
+            "type": "string"
+          },
+          "current_seats": {
+            "title": "Current Seats",
+            "type": "integer"
+          },
+          "delta_arr": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Delta Arr",
+            "type": "string"
+          },
+          "license_id": {
+            "title": "License Id",
+            "type": "string"
+          },
+          "partner": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Partner"
+          },
+          "pricing_structure": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PricingStructure"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "projected_arr": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Projected Arr",
+            "type": "string"
+          },
+          "projected_seats": {
+            "title": "Projected Seats",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "license_id",
+          "app",
+          "current_seats",
+          "projected_seats",
+          "current_arr",
+          "projected_arr",
+          "delta_arr"
+        ],
+        "title": "UpsellRow",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "Typed-RPC HTTP service fronting Metabase.",
+    "title": "Modus Data Connector",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/healthz": {
+      "get": {
+        "operationId": "healthz_healthz_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Healthz Healthz Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Healthz",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/healthz/upstream": {
+      "get": {
+        "operationId": "upstream_health_healthz_upstream_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Upstream Health Healthz Upstream Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Upstream Health",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/rpc/arr_at_risk": {
+      "post": {
+        "operationId": "arr_at_risk_rpc_arr_at_risk_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ArrAtRiskInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response_ArrAtRiskOutput_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Arr At Risk",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
+    "/rpc/channel_split": {
+      "post": {
+        "operationId": "channel_split_rpc_channel_split_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChannelSplitInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response_ChannelSplitOutput_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Channel Split",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
+    "/rpc/data_quality_signals": {
+      "post": {
+        "operationId": "data_quality_signals_rpc_data_quality_signals_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DataQualitySignalsInput",
+                "default": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response_DataQualitySignalsOutput_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Data Quality Signals",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
+    "/rpc/describe_catalog": {
+      "post": {
+        "operationId": "describe_catalog_rpc_describe_catalog_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DescribeCatalogInput",
+                "default": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response_DescribeCatalogOutput_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Describe Catalog",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
+    "/rpc/execute_sql": {
+      "post": {
+        "operationId": "execute_sql_rpc_execute_sql_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExecuteSqlInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response_ExecuteSqlOutput_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Execute Sql",
+        "tags": [
+          "raw"
+        ]
+      }
+    },
+    "/rpc/license_query": {
+      "post": {
+        "operationId": "license_query_rpc_license_query_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LicenseQueryInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response_LicenseQueryOutput_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "License Query",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
+    "/rpc/mrr_trend": {
+      "post": {
+        "operationId": "mrr_trend_rpc_mrr_trend_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MrrTrendInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response_MrrTrendOutput_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Mrr Trend",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
+    "/rpc/partner_revenue": {
+      "post": {
+        "operationId": "partner_revenue_rpc_partner_revenue_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PartnerRevenueInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response_PartnerRevenueOutput_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Partner Revenue",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
+    "/rpc/read_audit": {
+      "post": {
+        "operationId": "read_audit_rpc_read_audit_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReadAuditInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response_ReadAuditOutput_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Audit",
+        "tags": [
+          "operator"
+        ]
+      }
+    },
+    "/rpc/revenue_comparison": {
+      "post": {
+        "operationId": "revenue_comparison_rpc_revenue_comparison_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RevenueComparisonInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response_RevenueComparisonOutput_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revenue Comparison",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
+    "/rpc/top_partners": {
+      "post": {
+        "operationId": "top_partners_rpc_top_partners_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TopPartnersInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response_TopPartnersOutput_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Top Partners",
+        "tags": [
+          "catalog"
+        ]
+      }
+    },
+    "/rpc/upsell_opportunities": {
+      "post": {
+        "operationId": "upsell_opportunities_rpc_upsell_opportunities_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsellOpportunitiesInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Response_UpsellOpportunitiesOutput_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Upsell Opportunities",
+        "tags": [
+          "catalog"
+        ]
+      }
+    }
+  }
+}

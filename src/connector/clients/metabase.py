@@ -151,9 +151,7 @@ def _looks_completed(payload: Any) -> bool:
     if payload.get("status") == "completed":
         return True
     data = payload.get("data")
-    if isinstance(data, dict) and isinstance(data.get("rows"), list):
-        return True
-    return False
+    return isinstance(data, dict) and isinstance(data.get("rows"), list)
 
 
 def _safe_text(r: httpx.Response, limit: int = 500) -> str:
