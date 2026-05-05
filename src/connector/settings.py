@@ -24,6 +24,12 @@ class Settings(BaseSettings):
     audit_db_path: str = "./data/audit.sqlite"
     audit_retention_days: int = 365
 
+    # Rate limiting (SEC-04A). Format: "<n>/<period>" where period is second/minute/hour.
+    # Empty string disables rate limiting entirely.
+    rate_limit_default: str = "60/minute"
+    rate_limit_raw_sql: str = "30/minute"
+    rate_limit_operator: str = "120/minute"
+
 
 _settings: Settings | None = None
 

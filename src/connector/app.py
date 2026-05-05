@@ -23,6 +23,7 @@ from connector.middleware.request_id import RequestIDMiddleware
 from connector.registry import registry
 from connector.rpcs._registration import register_rpcs
 from connector.security.auth import APIKeyAuthMiddleware, parse_api_key_config
+from connector.security.ratelimit import RateLimitConfig, RateLimitMiddleware
 from connector.settings import get_settings
 
 log = logging.getLogger("connector.app")
@@ -74,7 +75,13 @@ def create_app(*, audit_store: AuditStore | None = None) -> FastAPI:
     app.state.audit_store = store
 
     # Middleware order: outermost runs first. Add inner first.
-    # Final flow: RequestID -> Audit -> Auth -> handler.
+    # Final flow: RequestID -> Audit -> Auth -> RateLimit -> handler.
+    rl_config = RateLimitConfig(
+        default=settings.rate_limit_default,
+        raw_sql=settings.rate_limit_raw_sql,
+        operator=settings.rate_limit_operator,
+    )
+    app.add_middleware(RateLimitMiddleware, config=rl_config)
     app.add_middleware(
         APIKeyAuthMiddleware,
         key_to_identity=parse_api_key_config(settings.connector_api_keys),
