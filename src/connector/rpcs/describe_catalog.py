@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import APIRouter, Depends, Request
@@ -59,5 +59,5 @@ async def describe_catalog(
     consumer=Depends(require_scope(Scope.GENERAL)),
 ) -> Response[DescribeCatalogOutput]:
     entries = [CatalogEntry.model_validate(e) for e in registry.as_catalog()]
-    out = DescribeCatalogOutput(rpcs=entries, generated_at=datetime.now(timezone.utc))
+    out = DescribeCatalogOutput(rpcs=entries, generated_at=datetime.now(UTC))
     return wrap(request, DESCRIPTOR, out)

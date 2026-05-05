@@ -10,9 +10,7 @@ from connector.clients.metabase import MetabaseClient
 
 @pytest.fixture()
 def client(monkeypatch) -> TestClient:
-    monkeypatch.setenv(
-        "CONNECTOR_API_KEYS", "test-key=cron-1|backend_service_account|general"
-    )
+    monkeypatch.setenv("CONNECTOR_API_KEYS", "test-key=cron-1|backend_service_account|general")
     monkeypatch.setenv("METABASE_API_KEY", "stub")
     monkeypatch.setenv("CARD_ID_PARTNER_REVENUE", "1001")
     monkeypatch.setenv("CARD_ID_CHANNEL_SPLIT", "1002")
@@ -26,23 +24,46 @@ def client(monkeypatch) -> TestClient:
 
     # Bust caches.
     import connector.settings as s
+
     s._settings = None
     import importlib
 
     import connector.rpc_config as rc
+
     importlib.reload(rc)
-    import connector.rpcs.partner_revenue as pr; importlib.reload(pr)
-    import connector.rpcs.channel_split as cs; importlib.reload(cs)
-    import connector.rpcs.top_partners as tp; importlib.reload(tp)
-    import connector.rpcs.mrr_trend as mt; importlib.reload(mt)
-    import connector.rpcs.arr_at_risk as ar; importlib.reload(ar)
-    import connector.rpcs.upsell_opportunities as up; importlib.reload(up)
-    import connector.rpcs.revenue_comparison as rev; importlib.reload(rev)
-    import connector.rpcs.data_quality_signals as dq; importlib.reload(dq)
-    import connector.rpcs.license_query as lq; importlib.reload(lq)
-    import connector.rpcs._registration as reg; importlib.reload(reg)
+    import connector.rpcs.partner_revenue as pr
+
+    importlib.reload(pr)
+    import connector.rpcs.channel_split as cs
+
+    importlib.reload(cs)
+    import connector.rpcs.top_partners as tp
+
+    importlib.reload(tp)
+    import connector.rpcs.mrr_trend as mt
+
+    importlib.reload(mt)
+    import connector.rpcs.arr_at_risk as ar
+
+    importlib.reload(ar)
+    import connector.rpcs.upsell_opportunities as up
+
+    importlib.reload(up)
+    import connector.rpcs.revenue_comparison as rev
+
+    importlib.reload(rev)
+    import connector.rpcs.data_quality_signals as dq
+
+    importlib.reload(dq)
+    import connector.rpcs.license_query as lq
+
+    importlib.reload(lq)
+    import connector.rpcs._registration as reg
+
+    importlib.reload(reg)
 
     from connector.app import create_app
+
     app = create_app()
 
     captured: dict[str, Any] = {"calls": []}
@@ -54,9 +75,7 @@ def client(monkeypatch) -> TestClient:
 
     monkeypatch.setattr(MetabaseClient, "execute_card", fake_execute_card)
     # Stub Metabase client into app state since lifespan won't actually open it without a real key.
-    app.state.metabase = MetabaseClient(
-        base_url="http://stub", api_key="stub", timeout_seconds=5.0
-    )
+    app.state.metabase = MetabaseClient(base_url="http://stub", api_key="stub", timeout_seconds=5.0)
 
     tc = TestClient(app)
     tc.captured = captured  # type: ignore[attr-defined]
@@ -67,10 +86,10 @@ def client(monkeypatch) -> TestClient:
 HEADERS = {"X-Connector-API-Key": "test-key"}
 
 
-def _stub_card(canned: dict[int, dict], card_id: int, rows: list[list], col_names: list[str]) -> None:
-    canned[card_id] = {
-        "data": {"rows": rows, "cols": [{"name": n} for n in col_names]}
-    }
+def _stub_card(
+    canned: dict[int, dict], card_id: int, rows: list[list], col_names: list[str]
+) -> None:
+    canned[card_id] = {"data": {"rows": rows, "cols": [{"name": n} for n in col_names]}}
 
 
 def test_partner_revenue_envelope_and_reshape(client: TestClient) -> None:
@@ -110,8 +129,12 @@ def test_channel_split_groups_partner_direct_total(client: TestClient) -> None:
         1002,
         [["1000.00", "500.00", 10, 5, 8, 3]],
         [
-            "partner_revenue", "direct_revenue", "partner_lines",
-            "direct_lines", "partner_distinct_licenses", "direct_distinct_licenses",
+            "partner_revenue",
+            "direct_revenue",
+            "partner_lines",
+            "direct_lines",
+            "partner_distinct_licenses",
+            "direct_distinct_licenses",
         ],
     )
     r = client.post(
@@ -194,8 +217,15 @@ def test_upsell_opportunities_pricing_structure_coerced(client: TestClient) -> N
         1007,
         [["L1", "Partner A", "App X", 10, 25, "100.00", "250.00", "150.00", "cloud_marginal_band"]],
         [
-            "license_id", "partner", "app", "current_seats", "projected_seats",
-            "current_arr", "projected_arr", "delta_arr", "pricing_structure",
+            "license_id",
+            "partner",
+            "app",
+            "current_seats",
+            "projected_seats",
+            "current_arr",
+            "projected_arr",
+            "delta_arr",
+            "pricing_structure",
         ],
     )
     r = client.post(
@@ -267,10 +297,29 @@ def test_license_query_filter_params_only_sent_when_set(client: TestClient) -> N
     _stub_card(
         client.canned,
         1010,
-        [["L1", "Partner A", "Acme", "Addon X", "active", "Cloud", "COMMERCIAL", "2025-01-01", "2026-01-01"]],
         [
-            "id", "partner", "company", "addon", "status", "hosting", "license_type",
-            "maintenance_start_date", "maintenance_end_date",
+            [
+                "L1",
+                "Partner A",
+                "Acme",
+                "Addon X",
+                "active",
+                "Cloud",
+                "COMMERCIAL",
+                "2025-01-01",
+                "2026-01-01",
+            ]
+        ],
+        [
+            "id",
+            "partner",
+            "company",
+            "addon",
+            "status",
+            "hosting",
+            "license_type",
+            "maintenance_start_date",
+            "maintenance_end_date",
         ],
     )
     r = client.post(
@@ -296,9 +345,18 @@ def test_describe_catalog_lists_all_rpcs(client: TestClient) -> None:
     assert r.status_code == 200, r.text
     names = {e["name"] for e in r.json()["data"]["rpcs"]}
     assert names == {
-        "describe_catalog", "partner_revenue", "channel_split", "top_partners",
-        "mrr_trend", "arr_at_risk", "upsell_opportunities", "revenue_comparison",
-        "data_quality_signals", "license_query", "execute_sql", "read_audit",
+        "describe_catalog",
+        "partner_revenue",
+        "channel_split",
+        "top_partners",
+        "mrr_trend",
+        "arr_at_risk",
+        "upsell_opportunities",
+        "revenue_comparison",
+        "data_quality_signals",
+        "license_query",
+        "execute_sql",
+        "read_audit",
     }
     # execute_sql carries scope=raw_sql.
     raw = next(e for e in r.json()["data"]["rpcs"] if e["name"] == "execute_sql")

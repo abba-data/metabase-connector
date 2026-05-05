@@ -50,8 +50,16 @@ DESCRIPTOR = RpcDescriptor(
 
 def _params(inp: ArrAtRiskInput) -> list[dict]:
     return [
-        {"type": "number/=", "target": ["variable", ["template-tag", "horizon_days"]], "value": inp.horizon_days},
-        {"type": "category", "target": ["variable", ["template-tag", "group_by"]], "value": inp.group_by.value},
+        {
+            "type": "number/=",
+            "target": ["variable", ["template-tag", "horizon_days"]],
+            "value": inp.horizon_days,
+        },
+        {
+            "type": "category",
+            "target": ["variable", ["template-tag", "group_by"]],
+            "value": inp.group_by.value,
+        },
     ]
 
 

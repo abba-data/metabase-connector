@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -52,7 +52,7 @@ async def store(request, tmp_path: Path):
 
 
 async def test_write_then_query_round_trip(store) -> None:
-    t = datetime(2026, 5, 1, 12, 0, tzinfo=timezone.utc)
+    t = datetime(2026, 5, 1, 12, 0, tzinfo=UTC)
     rec = _record(timestamp=t, rpc_name="partner_revenue")
     await store.write(rec)
     out = await store.query()
@@ -64,7 +64,7 @@ async def test_write_then_query_round_trip(store) -> None:
 
 
 async def test_query_filters_by_caller(store) -> None:
-    t = datetime(2026, 5, 1, 12, 0, tzinfo=timezone.utc)
+    t = datetime(2026, 5, 1, 12, 0, tzinfo=UTC)
     await store.write(_record(timestamp=t, rpc_name="x", caller_id="alice"))
     await store.write(_record(timestamp=t, rpc_name="x", caller_id="bob"))
     rows = await store.query(caller_id="alice")
@@ -72,7 +72,7 @@ async def test_query_filters_by_caller(store) -> None:
 
 
 async def test_query_filters_by_rpc_and_status(store) -> None:
-    t = datetime(2026, 5, 1, 12, 0, tzinfo=timezone.utc)
+    t = datetime(2026, 5, 1, 12, 0, tzinfo=UTC)
     await store.write(_record(timestamp=t, rpc_name="x", status=AuditStatus.SUCCESS))
     await store.write(_record(timestamp=t, rpc_name="y", status=AuditStatus.ERROR))
     rows = await store.query(rpc_name="y", status=AuditStatus.ERROR)
@@ -82,7 +82,7 @@ async def test_query_filters_by_rpc_and_status(store) -> None:
 
 
 async def test_query_time_range(store) -> None:
-    base = datetime(2026, 5, 1, 12, 0, tzinfo=timezone.utc)
+    base = datetime(2026, 5, 1, 12, 0, tzinfo=UTC)
     await store.write(_record(timestamp=base, rpc_name="x"))
     await store.write(_record(timestamp=base + timedelta(hours=1), rpc_name="x"))
     await store.write(_record(timestamp=base + timedelta(days=1), rpc_name="x"))
@@ -94,7 +94,7 @@ async def test_query_time_range(store) -> None:
 
 
 async def test_query_orders_newest_first(store) -> None:
-    base = datetime(2026, 5, 1, tzinfo=timezone.utc)
+    base = datetime(2026, 5, 1, tzinfo=UTC)
     for i in range(3):
         await store.write(_record(timestamp=base + timedelta(hours=i), rpc_name=f"r{i}"))
     rows = await store.query()
@@ -102,7 +102,7 @@ async def test_query_orders_newest_first(store) -> None:
 
 
 async def test_query_pagination(store) -> None:
-    base = datetime(2026, 5, 1, tzinfo=timezone.utc)
+    base = datetime(2026, 5, 1, tzinfo=UTC)
     for i in range(5):
         await store.write(_record(timestamp=base + timedelta(seconds=i), rpc_name=f"r{i}"))
     page1 = await store.query(limit=2, offset=0)
@@ -113,7 +113,7 @@ async def test_query_pagination(store) -> None:
 
 
 async def test_prune_older_than(store) -> None:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     await store.write(_record(timestamp=now - timedelta(days=400), rpc_name="old"))
     await store.write(_record(timestamp=now - timedelta(days=10), rpc_name="recent"))
     pruned = await store.prune_older_than(retention_days=365)
@@ -124,8 +124,6 @@ async def test_prune_older_than(store) -> None:
 
 def test_build_store_dispatches() -> None:
     assert isinstance(build_store("memory", sqlite_path=""), InMemoryAuditStore)
-    assert isinstance(
-        build_store("sqlite", sqlite_path=":memory:"), SQLiteAuditStore
-    )
+    assert isinstance(build_store("sqlite", sqlite_path=":memory:"), SQLiteAuditStore)
     with pytest.raises(ValueError):
         build_store("nope", sqlite_path="")

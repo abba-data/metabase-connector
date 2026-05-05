@@ -22,7 +22,7 @@ class TopPartnersInput(BaseModel):
     consolidate: bool = True
 
     @model_validator(mode="after")
-    def _check_dates(self) -> "TopPartnersInput":
+    def _check_dates(self) -> TopPartnersInput:
         if self.end_date < self.start_date:
             raise ValueError("end_date must be on or after start_date")
         return self
@@ -52,10 +52,22 @@ DESCRIPTOR = RpcDescriptor(
 
 def _params(inp: TopPartnersInput) -> list[dict]:
     return [
-        {"type": "date/single", "target": ["variable", ["template-tag", "start_date"]], "value": inp.start_date.isoformat()},
-        {"type": "date/single", "target": ["variable", ["template-tag", "end_date"]], "value": inp.end_date.isoformat()},
+        {
+            "type": "date/single",
+            "target": ["variable", ["template-tag", "start_date"]],
+            "value": inp.start_date.isoformat(),
+        },
+        {
+            "type": "date/single",
+            "target": ["variable", ["template-tag", "end_date"]],
+            "value": inp.end_date.isoformat(),
+        },
         {"type": "number/=", "target": ["variable", ["template-tag", "limit"]], "value": inp.limit},
-        {"type": "category", "target": ["variable", ["template-tag", "consolidate"]], "value": inp.consolidate},
+        {
+            "type": "category",
+            "target": ["variable", ["template-tag", "consolidate"]],
+            "value": inp.consolidate,
+        },
     ]
 
 

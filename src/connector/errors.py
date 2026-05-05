@@ -98,9 +98,9 @@ def _envelope_response(
     status_code: int,
     debug: dict[str, Any] | None = None,
 ) -> JSONResponse:
-    body = ErrorEnvelope(
-        code=code, message=message, request_id=request_id, debug=debug
-    ).model_dump(exclude_none=True)
+    body = ErrorEnvelope(code=code, message=message, request_id=request_id, debug=debug).model_dump(
+        exclude_none=True
+    )
     return JSONResponse(
         status_code=status_code,
         content=body,

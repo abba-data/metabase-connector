@@ -5,7 +5,7 @@ import json
 import logging
 import time
 from collections.abc import Awaitable, Callable
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -109,7 +109,9 @@ class AuditMiddleware(BaseHTTPMiddleware):
             request_id = getattr(request.state, "request_id", "unknown")
 
             if response is not None and 400 <= response.status_code < 600:
-                error_code = response.headers.get("X-Error-Code") or error_code or _peek_error_code(response)
+                error_code = (
+                    response.headers.get("X-Error-Code") or error_code or _peek_error_code(response)
+                )
 
             descriptor = registry.get(rpc_name) if rpc_name else None
             kind: Kind | None = None
@@ -122,7 +124,7 @@ class AuditMiddleware(BaseHTTPMiddleware):
 
             status_ok = response is not None and 200 <= response.status_code < 400
             record = AuditRecord(
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 request_id=request_id,
                 caller_id=consumer.id if consumer else None,
                 consumer_type=consumer.consumer_type if consumer else None,

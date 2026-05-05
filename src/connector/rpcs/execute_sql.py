@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import APIRouter, Depends, Request
@@ -125,7 +125,7 @@ async def execute_sql(
         running_time_ms=int(running_ms_raw) if running_ms_raw is not None else None,
         status=payload.get("status"),
         rows_truncated=data.get("rows_truncated"),
-        executed_at=datetime.now(timezone.utc),
+        executed_at=datetime.now(UTC),
     )
     meta = envelope_for(
         request_id=request.state.request_id,

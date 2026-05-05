@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from connector.models import Kind, Response, ResponseMeta, envelope_for
+from connector.models import Kind, Response, envelope_for
 
 
 def test_envelope_for_defaults() -> None:

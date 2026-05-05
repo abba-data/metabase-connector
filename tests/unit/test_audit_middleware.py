@@ -23,6 +23,7 @@ def authed_client_with_audit(monkeypatch) -> tuple[TestClient, InMemoryAuditStor
         "general-key=cron-1|backend_service_account|general;ops-key=ops|backend_service_account|general,operator",
     )
     import connector.settings as s
+
     s._settings = None
     from connector.app import create_app
 

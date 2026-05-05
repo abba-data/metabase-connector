@@ -55,8 +55,16 @@ DESCRIPTOR = RpcDescriptor(
 
 def _params(inp: UpsellOpportunitiesInput) -> list[dict]:
     return [
-        {"type": "number/=", "target": ["variable", ["template-tag", "horizon_days"]], "value": inp.horizon_days},
-        {"type": "number/=", "target": ["variable", ["template-tag", "min_seat_delta"]], "value": inp.min_seat_delta},
+        {
+            "type": "number/=",
+            "target": ["variable", ["template-tag", "horizon_days"]],
+            "value": inp.horizon_days,
+        },
+        {
+            "type": "number/=",
+            "target": ["variable", ["template-tag", "min_seat_delta"]],
+            "value": inp.min_seat_delta,
+        },
     ]
 
 

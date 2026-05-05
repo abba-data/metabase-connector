@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, Field
@@ -80,7 +80,7 @@ async def read_audit(
     out = ReadAuditOutput(
         records=records,
         next_offset=next_offset,
-        queried_at=datetime.now(timezone.utc),
+        queried_at=datetime.now(UTC),
     )
     meta = envelope_for(
         request_id=request.state.request_id,

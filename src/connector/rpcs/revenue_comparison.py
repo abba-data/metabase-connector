@@ -6,7 +6,7 @@ from decimal import Decimal
 from enum import Enum
 
 from fastapi import APIRouter, Depends, Request
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, model_validator
 
 from connector.models import Response, Scope
 from connector.registry import RpcDescriptor
@@ -28,7 +28,7 @@ class Period(BaseModel):
     end_date: date
 
     @model_validator(mode="after")
-    def _check(self) -> "Period":
+    def _check(self) -> Period:
         if self.end_date < self.start_date:
             raise ValueError("end_date must be on or after start_date")
         return self
@@ -51,7 +51,7 @@ def parse_period(text: str) -> Period:
         start_month = (q - 1) * 3 + 1
         start = date(y, start_month, 1)
         end_month = start_month + 2
-        end_day = (date(y, end_month + 1, 1) if end_month < 12 else date(y + 1, 1, 1))
+        end_day = date(y, end_month + 1, 1) if end_month < 12 else date(y + 1, 1, 1)
         from datetime import timedelta
 
         end = end_day - timedelta(days=1)
@@ -65,7 +65,7 @@ class RevenueComparisonInput(BaseModel):
     dimension: Dimension = Dimension.CHANNEL
 
     @model_validator(mode="after")
-    def _coerce(self) -> "RevenueComparisonInput":
+    def _coerce(self) -> RevenueComparisonInput:
         if isinstance(self.period_a, str):
             object.__setattr__(self, "period_a", parse_period(self.period_a))
         if isinstance(self.period_b, str):
@@ -111,11 +111,31 @@ def _params(inp: RevenueComparisonInput) -> list[dict]:
     a = inp.period_a if isinstance(inp.period_a, Period) else parse_period(str(inp.period_a))
     b = inp.period_b if isinstance(inp.period_b, Period) else parse_period(str(inp.period_b))
     return [
-        {"type": "date/single", "target": ["variable", ["template-tag", "period_a_start"]], "value": a.start_date.isoformat()},
-        {"type": "date/single", "target": ["variable", ["template-tag", "period_a_end"]], "value": a.end_date.isoformat()},
-        {"type": "date/single", "target": ["variable", ["template-tag", "period_b_start"]], "value": b.start_date.isoformat()},
-        {"type": "date/single", "target": ["variable", ["template-tag", "period_b_end"]], "value": b.end_date.isoformat()},
-        {"type": "category", "target": ["variable", ["template-tag", "dimension"]], "value": inp.dimension.value},
+        {
+            "type": "date/single",
+            "target": ["variable", ["template-tag", "period_a_start"]],
+            "value": a.start_date.isoformat(),
+        },
+        {
+            "type": "date/single",
+            "target": ["variable", ["template-tag", "period_a_end"]],
+            "value": a.end_date.isoformat(),
+        },
+        {
+            "type": "date/single",
+            "target": ["variable", ["template-tag", "period_b_start"]],
+            "value": b.start_date.isoformat(),
+        },
+        {
+            "type": "date/single",
+            "target": ["variable", ["template-tag", "period_b_end"]],
+            "value": b.end_date.isoformat(),
+        },
+        {
+            "type": "category",
+            "target": ["variable", ["template-tag", "dimension"]],
+            "value": inp.dimension.value,
+        },
     ]
 
 

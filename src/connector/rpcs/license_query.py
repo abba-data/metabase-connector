@@ -83,7 +83,9 @@ def _params(inp: LicenseQueryInput) -> list[dict]:
         if value is None:
             continue
         out.append({"type": ptype, "target": ["variable", ["template-tag", name]], "value": value})
-    out.append({"type": "number/=", "target": ["variable", ["template-tag", "limit"]], "value": inp.limit})
+    out.append(
+        {"type": "number/=", "target": ["variable", ["template-tag", "limit"]], "value": inp.limit}
+    )
     return out
 
 
@@ -118,8 +120,12 @@ async def license_query(
             status=r.get("status"),
             hosting=r.get("hosting"),
             license_type=r.get("license_type") or r.get("licenseType"),
-            maintenance_start_date=_coerce_date(r.get("maintenance_start_date") or r.get("maintenanceStartDate")),
-            maintenance_end_date=_coerce_date(r.get("maintenance_end_date") or r.get("maintenanceEndDate")),
+            maintenance_start_date=_coerce_date(
+                r.get("maintenance_start_date") or r.get("maintenanceStartDate")
+            ),
+            maintenance_end_date=_coerce_date(
+                r.get("maintenance_end_date") or r.get("maintenanceEndDate")
+            ),
         )
         for r in rows
     ]

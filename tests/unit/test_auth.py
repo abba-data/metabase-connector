@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import os
-
 import pytest
 from fastapi.testclient import TestClient
 
@@ -25,13 +23,13 @@ def test_parse_api_key_config_skips_invalid_lines() -> None:
 
 @pytest.fixture()
 def authed_client(monkeypatch) -> TestClient:
-    monkeypatch.setenv(
-        "CONNECTOR_API_KEYS", "test-key-1=cron-1|backend_service_account|general"
-    )
+    monkeypatch.setenv("CONNECTOR_API_KEYS", "test-key-1=cron-1|backend_service_account|general")
     # Bust the cached settings.
     import connector.settings as s
+
     s._settings = None
     from connector.app import create_app
+
     return TestClient(create_app())
 
 

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Any
-
 import httpx
 import pytest
 import respx
@@ -12,13 +10,13 @@ from connector.clients.metabase import MetabaseClient
 
 @pytest.fixture()
 def general_only_client(monkeypatch) -> TestClient:
-    monkeypatch.setenv(
-        "CONNECTOR_API_KEYS", "key-general=cron|backend_service_account|general"
-    )
+    monkeypatch.setenv("CONNECTOR_API_KEYS", "key-general=cron|backend_service_account|general")
     monkeypatch.setenv("METABASE_API_KEY", "stub")
     import connector.settings as s
+
     s._settings = None
     from connector.app import create_app
+
     app = create_app()
     app.state.metabase = MetabaseClient(
         base_url="http://metabase.test", api_key="stub", timeout_seconds=5.0
@@ -34,8 +32,10 @@ def raw_sql_client(monkeypatch) -> TestClient:
     )
     monkeypatch.setenv("METABASE_API_KEY", "stub")
     import connector.settings as s
+
     s._settings = None
     from connector.app import create_app
+
     app = create_app()
     app.state.metabase = MetabaseClient(
         base_url="http://metabase.test", api_key="stub", timeout_seconds=5.0
@@ -44,9 +44,7 @@ def raw_sql_client(monkeypatch) -> TestClient:
 
 
 def test_execute_sql_requires_api_key(general_only_client: TestClient) -> None:
-    r = general_only_client.post(
-        "/rpc/execute_sql", json={"database_id": 2, "sql": "SELECT 1"}
-    )
+    r = general_only_client.post("/rpc/execute_sql", json={"database_id": 2, "sql": "SELECT 1"})
     assert r.status_code == 401
 
 
@@ -101,8 +99,8 @@ def test_execute_sql_success_returns_columns_rows_envelope(raw_sql_client: TestC
     assert route.called
     sent = route.calls.last.request.read()
     assert b"SELECT id, label FROM widgets" in sent
-    assert b"\"type\": \"native\"" in sent or b'"type":"native"' in sent
-    assert b"\"database\": 2" in sent or b'"database":2' in sent
+    assert b'"type": "native"' in sent or b'"type":"native"' in sent
+    assert b'"database": 2' in sent or b'"database":2' in sent
 
 
 @respx.mock
@@ -116,11 +114,13 @@ def test_execute_sql_passes_template_tags_and_parameters(raw_sql_client: TestCli
         json={
             "database_id": 2,
             "sql": "SELECT * FROM t WHERE created_at >= {{since}}",
-            "template_tags": {
-                "since": {"type": "date", "name": "since", "required": True}
-            },
+            "template_tags": {"since": {"type": "date", "name": "since", "required": True}},
             "parameters": [
-                {"type": "date/single", "target": ["variable", ["template-tag", "since"]], "value": "2026-01-01"}
+                {
+                    "type": "date/single",
+                    "target": ["variable", ["template-tag", "since"]],
+                    "value": "2026-01-01",
+                }
             ],
         },
     )
@@ -157,9 +157,7 @@ def test_execute_sql_propagates_metabase_5xx_as_unavailable(raw_sql_client: Test
 
 @respx.mock
 def test_execute_sql_propagates_202_as_exceeded_sync_window(raw_sql_client: TestClient) -> None:
-    respx.post("http://metabase.test/api/dataset").mock(
-        return_value=httpx.Response(202, json={})
-    )
+    respx.post("http://metabase.test/api/dataset").mock(return_value=httpx.Response(202, json={}))
     r = raw_sql_client.post(
         "/rpc/execute_sql",
         headers={"X-Connector-API-Key": "key-raw"},

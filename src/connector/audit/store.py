@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import logging
 import sqlite3
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from threading import Lock
 from typing import Any, Protocol
@@ -82,7 +82,7 @@ class InMemoryAuditStore:
         return rows[offset : offset + limit]
 
     async def prune_older_than(self, retention_days: int) -> int:
-        cutoff = datetime.now(timezone.utc) - timedelta(days=retention_days)
+        cutoff = datetime.now(UTC) - timedelta(days=retention_days)
         with self._lock:
             before = len(self._records)
             self._records = [r for r in self._records if r.timestamp >= cutoff]
@@ -212,11 +212,9 @@ class SQLiteAuditStore:
         return [_row_to_record(r) for r in raw_rows]
 
     async def prune_older_than(self, retention_days: int) -> int:
-        cutoff = (datetime.now(timezone.utc) - timedelta(days=retention_days)).isoformat()
+        cutoff = (datetime.now(UTC) - timedelta(days=retention_days)).isoformat()
         with self._lock:
-            cursor = self._conn.execute(
-                "DELETE FROM audit_records WHERE timestamp < ?", (cutoff,)
-            )
+            cursor = self._conn.execute("DELETE FROM audit_records WHERE timestamp < ?", (cutoff,))
             return cursor.rowcount or 0
 
     async def aclose(self) -> None:
@@ -226,8 +224,21 @@ class SQLiteAuditStore:
 
 def _row_to_record(r: tuple[Any, ...]) -> AuditRecord:
     (
-        ts, rid, caller, ctype, scope, rpc, ver, params_json, kind, sqid,
-        lat, rc, status, err, cv,
+        ts,
+        rid,
+        caller,
+        ctype,
+        scope,
+        rpc,
+        ver,
+        params_json,
+        kind,
+        sqid,
+        lat,
+        rc,
+        status,
+        err,
+        cv,
     ) = r
     return AuditRecord(
         timestamp=datetime.fromisoformat(ts),

@@ -4,7 +4,7 @@ from enum import Enum
 from typing import Any
 
 from fastapi import APIRouter, Depends, Request
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from connector.models import Response, Scope
 from connector.registry import RpcDescriptor

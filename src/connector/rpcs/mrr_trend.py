@@ -45,11 +45,19 @@ DESCRIPTOR = RpcDescriptor(
 
 def _params(inp: MrrTrendInput) -> list[dict]:
     params: list[dict] = [
-        {"type": "number/=", "target": ["variable", ["template-tag", "months_back"]], "value": inp.months_back},
+        {
+            "type": "number/=",
+            "target": ["variable", ["template-tag", "months_back"]],
+            "value": inp.months_back,
+        },
     ]
     if inp.partner_subtype is not None:
         params.append(
-            {"type": "category", "target": ["variable", ["template-tag", "partner_subtype"]], "value": inp.partner_subtype}
+            {
+                "type": "category",
+                "target": ["variable", ["template-tag", "partner_subtype"]],
+                "value": inp.partner_subtype,
+            }
         )
     return params
 
@@ -70,10 +78,14 @@ def _reshape(rows: list[dict[str, Any]]) -> list[MrrPoint]:
         point.mrr = point.mrr + contribution
         ct = r.get("customer_type")
         if ct is not None:
-            point.by_customer_type[str(ct)] = point.by_customer_type.get(str(ct), Decimal(0)) + contribution
+            point.by_customer_type[str(ct)] = (
+                point.by_customer_type.get(str(ct), Decimal(0)) + contribution
+            )
         pt = r.get("partner_type")
         if pt is not None:
-            point.by_partner_type[str(pt)] = point.by_partner_type.get(str(pt), Decimal(0)) + contribution
+            point.by_partner_type[str(pt)] = (
+                point.by_partner_type.get(str(pt), Decimal(0)) + contribution
+            )
     return [by_month[k] for k in sorted(by_month.keys())]
 
 
