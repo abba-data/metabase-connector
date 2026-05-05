@@ -115,10 +115,6 @@ class MetabaseClient:
         except httpx.HTTPError as e:
             raise MetabaseUnavailableError(f"Metabase request to {path} failed: {e}") from e
 
-        if r.status_code == 202:
-            raise ExceededSyncWindowError(
-                "Metabase returned 202 Accepted — query exceeded the synchronous window."
-            )
         if r.status_code >= 500:
             raise MetabaseUnavailableError(
                 f"Metabase {r.status_code} on {path}: {_safe_text(r)}",
@@ -129,10 +125,35 @@ class MetabaseClient:
                 status_code=502,
                 debug={"upstream_status": r.status_code},
             )
+
+        # Metabase quirk: /api/dataset and /api/card/{id}/query return HTTP 202
+        # with the full result body when the query completed within the sync
+        # window. Surface EXCEEDED_SYNC_WINDOW only if the body is missing the
+        # completed-query payload.
         try:
-            return r.json()
+            payload = r.json()
         except ValueError as e:
             raise MetabaseError(f"Metabase non-JSON response on {path}.") from e
+
+        if r.status_code == 202 and not _looks_completed(payload):
+            raise ExceededSyncWindowError(
+                "Metabase returned 202 Accepted with no result body — query exceeded the synchronous window."
+            )
+        return payload
+
+
+def _looks_completed(payload: Any) -> bool:
+    """A Metabase dataset_query response is treated as complete when the
+    body carries a `data.rows` array or an explicit `status: 'completed'`.
+    """
+    if not isinstance(payload, dict):
+        return False
+    if payload.get("status") == "completed":
+        return True
+    data = payload.get("data")
+    if isinstance(data, dict) and isinstance(data.get("rows"), list):
+        return True
+    return False
 
 
 def _safe_text(r: httpx.Response, limit: int = 500) -> str:

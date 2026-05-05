@@ -43,12 +43,28 @@ async def test_execute_card_success(mb: MetabaseClient) -> None:
 
 
 @respx.mock
-async def test_execute_card_202_raises_exceeded_sync_window(mb: MetabaseClient) -> None:
+async def test_execute_card_202_with_empty_body_raises_exceeded(mb: MetabaseClient) -> None:
     respx.post("http://metabase.test/api/card/42/query").mock(
         return_value=httpx.Response(202, json={})
     )
     with pytest.raises(ExceededSyncWindowError):
         await mb.execute_card(42)
+
+
+@respx.mock
+async def test_execute_card_202_with_completed_body_is_success(mb: MetabaseClient) -> None:
+    """Some Metabase versions return 202 with the full data inline. Don't error on those."""
+    payload = {
+        "data": {"rows": [[1]], "cols": [{"name": "ping"}]},
+        "row_count": 1,
+        "running_time": 11,
+        "status": "completed",
+    }
+    respx.post("http://metabase.test/api/card/42/query").mock(
+        return_value=httpx.Response(202, json=payload)
+    )
+    out = await mb.execute_card(42)
+    assert out == payload
 
 
 @respx.mock

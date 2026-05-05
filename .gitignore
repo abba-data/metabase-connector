@@ -30,3 +30,4 @@ data/
 *.sqlite-journal
 *.sqlite-wal
 *.sqlite-shm
+.claude/
