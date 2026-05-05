@@ -69,14 +69,26 @@ def test_every_rpc_response_includes_meta_envelope(
 
 
 def test_security_scheme_declared(openapi_doc: dict[str, Any]) -> None:
-    components = openapi_doc.get("components", {})
-    schemes = components.get("securitySchemes", {})
-    # FastAPI may not auto-emit a security scheme without explicit declaration;
-    # verify that at minimum the X-Connector-API-Key header is documented in
-    # one of the parameter shapes we surface, OR that the API key handling is
-    # described in the description.
-    if not schemes:
-        pytest.skip("explicit securitySchemes not yet emitted (DOC-01A follow-up)")
+    schemes = openapi_doc.get("components", {}).get("securitySchemes", {})
+    assert "ConnectorApiKey" in schemes, "ConnectorApiKey security scheme missing"
+    api_key = schemes["ConnectorApiKey"]
+    assert api_key["type"] == "apiKey"
+    assert api_key["in"] == "header"
+    assert api_key["name"] == "X-Connector-API-Key"
+
+
+def test_every_rpc_route_requires_api_key(openapi_doc: dict[str, Any]) -> None:
+    """Every /rpc/* path must declare ConnectorApiKey security."""
+    for path, item in openapi_doc["paths"].items():
+        if not path.startswith("/rpc/"):
+            continue
+        for method, op in item.items():
+            if method.lower() != "post":
+                continue
+            security = op.get("security") or []
+            assert any("ConnectorApiKey" in s for s in security), (
+                f"{method.upper()} {path}: missing ConnectorApiKey in security"
+            )
 
 
 def _resolve(schema: dict[str, Any], components: dict[str, Any]) -> dict[str, Any]:

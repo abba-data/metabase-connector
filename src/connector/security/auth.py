@@ -70,7 +70,15 @@ def parse_api_key_config(raw: str) -> dict[str, ConsumerIdentity]:
 
 # Routes that bypass auth (health, openapi, docs).
 PUBLIC_PATHS: frozenset[str] = frozenset(
-    {"/healthz", "/healthz/upstream", "/openapi.json", "/docs", "/redoc", "/docs/oauth2-redirect"}
+    {
+        "/healthz",
+        "/healthz/upstream",
+        "/openapi.json",
+        "/docs",
+        "/redoc",
+        "/docs/oauth2-redirect",
+        "/metrics",
+    }
 )
 
 
