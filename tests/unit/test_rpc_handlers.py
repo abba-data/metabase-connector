@@ -291,12 +291,15 @@ def test_license_query_filter_params_only_sent_when_set(client: TestClient) -> N
     assert "hosting" not in param_names
 
 
-def test_describe_catalog_lists_all_ten(client: TestClient) -> None:
+def test_describe_catalog_lists_all_rpcs(client: TestClient) -> None:
     r = client.post("/rpc/describe_catalog", headers=HEADERS, json={})
     assert r.status_code == 200, r.text
-    names = [e["name"] for e in r.json()["data"]["rpcs"]]
-    assert sorted(names) == sorted([
+    names = {e["name"] for e in r.json()["data"]["rpcs"]}
+    assert names == {
         "describe_catalog", "partner_revenue", "channel_split", "top_partners",
         "mrr_trend", "arr_at_risk", "upsell_opportunities", "revenue_comparison",
-        "data_quality_signals", "license_query",
-    ])
+        "data_quality_signals", "license_query", "execute_sql",
+    }
+    # execute_sql carries scope=raw_sql.
+    raw = next(e for e in r.json()["data"]["rpcs"] if e["name"] == "execute_sql")
+    assert raw["required_scope"] == "raw_sql"

@@ -8,6 +8,7 @@ from connector.rpcs import (
     channel_split,
     data_quality_signals,
     describe_catalog,
+    execute_sql,
     license_query,
     mrr_trend,
     partner_revenue,
@@ -28,6 +29,7 @@ _RPC_MODULES = [
     revenue_comparison,
     data_quality_signals,
     license_query,
+    execute_sql,
 ]
 
 

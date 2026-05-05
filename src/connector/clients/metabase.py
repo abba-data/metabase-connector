@@ -89,12 +89,18 @@ class MetabaseClient:
         *,
         database_id: int,
         sql: str,
+        parameters: list[dict[str, Any]] | None = None,
+        template_tags: dict[str, dict[str, Any]] | None = None,
         timeout: float | None = None,
     ) -> dict[str, Any]:
-        body = {
+        native: dict[str, Any] = {"query": sql}
+        if template_tags:
+            native["template-tags"] = template_tags
+        body: dict[str, Any] = {
             "database": database_id,
             "type": "native",
-            "native": {"query": sql},
+            "native": native,
+            "parameters": parameters or [],
         }
         return await self._post_query("/api/dataset", body=body, timeout=timeout)
 

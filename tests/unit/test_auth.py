@@ -59,7 +59,8 @@ def test_describe_catalog_authed(authed_client: TestClient) -> None:
     names = [e["name"] for e in body["data"]["rpcs"]]
     assert "describe_catalog" in names
     assert "partner_revenue" in names
-    assert len(names) == 10
+    assert "execute_sql" in names
+    assert len(names) == 11
 
 
 def test_healthz_does_not_require_auth(authed_client: TestClient) -> None:
