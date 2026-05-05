@@ -298,7 +298,7 @@ def test_describe_catalog_lists_all_rpcs(client: TestClient) -> None:
     assert names == {
         "describe_catalog", "partner_revenue", "channel_split", "top_partners",
         "mrr_trend", "arr_at_risk", "upsell_opportunities", "revenue_comparison",
-        "data_quality_signals", "license_query", "execute_sql",
+        "data_quality_signals", "license_query", "execute_sql", "read_audit",
     }
     # execute_sql carries scope=raw_sql.
     raw = next(e for e in r.json()["data"]["rpcs"] if e["name"] == "execute_sql")

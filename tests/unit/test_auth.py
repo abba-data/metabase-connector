@@ -60,7 +60,8 @@ def test_describe_catalog_authed(authed_client: TestClient) -> None:
     assert "describe_catalog" in names
     assert "partner_revenue" in names
     assert "execute_sql" in names
-    assert len(names) == 11
+    assert "read_audit" in names
+    assert len(names) == 12
 
 
 def test_healthz_does_not_require_auth(authed_client: TestClient) -> None:

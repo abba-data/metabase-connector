@@ -9,6 +9,7 @@ from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException
 
 from connector import __version__
+from connector.audit.store import AuditStore, build_store
 from connector.clients.metabase import MetabaseClient
 from connector.errors import (
     ConnectorError,
@@ -17,6 +18,7 @@ from connector.errors import (
     unhandled_exception_handler,
     validation_exception_handler,
 )
+from connector.middleware.audit import AuditMiddleware
 from connector.middleware.request_id import RequestIDMiddleware
 from connector.registry import registry
 from connector.rpcs._registration import register_rpcs
@@ -44,6 +46,8 @@ async def lifespan(app: FastAPI):  # type: ignore[no-untyped-def]
     finally:
         if app.state.metabase is not None:
             await app.state.metabase.aclose()
+        if app.state.audit_store is not None:
+            await app.state.audit_store.aclose()
 
 
 def _reset_registry_for_factory() -> None:
@@ -51,7 +55,7 @@ def _reset_registry_for_factory() -> None:
     registry._rpcs.clear()  # type: ignore[attr-defined]
 
 
-def create_app() -> FastAPI:
+def create_app(*, audit_store: AuditStore | None = None) -> FastAPI:
     settings = get_settings()
     logging.basicConfig(level=settings.log_level)
 
@@ -64,11 +68,18 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    # Outermost first: request-id, then auth.
+    store: AuditStore = audit_store or build_store(
+        settings.audit_store, sqlite_path=settings.audit_db_path
+    )
+    app.state.audit_store = store
+
+    # Middleware order: outermost runs first. Add inner first.
+    # Final flow: RequestID -> Audit -> Auth -> handler.
     app.add_middleware(
         APIKeyAuthMiddleware,
         key_to_identity=parse_api_key_config(settings.connector_api_keys),
     )
+    app.add_middleware(AuditMiddleware, store=store)
     app.add_middleware(RequestIDMiddleware)
 
     app.add_exception_handler(ConnectorError, connector_error_handler)  # type: ignore[arg-type]

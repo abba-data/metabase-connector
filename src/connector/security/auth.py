@@ -90,7 +90,7 @@ def _envelope(code: str, message: str, request_id: str, status: int) -> Response
         content=json.dumps(body),
         status_code=status,
         media_type="application/json",
-        headers={"X-Request-ID": request_id},
+        headers={"X-Request-ID": request_id, "X-Error-Code": code},
     )
 
 

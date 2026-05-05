@@ -25,3 +25,8 @@ htmlcov/
 .idea/
 .vscode/
 *.swp
+data/
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm

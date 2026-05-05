@@ -19,6 +19,11 @@ class Settings(BaseSettings):
 
     connector_api_keys: str = ""
 
+    # Audit (SEC-02). audit_store: 'sqlite' (default) or 'memory'.
+    audit_store: str = "sqlite"
+    audit_db_path: str = "./data/audit.sqlite"
+    audit_retention_days: int = 365
+
 
 _settings: Settings | None = None
 

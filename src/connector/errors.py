@@ -101,7 +101,11 @@ def _envelope_response(
     body = ErrorEnvelope(
         code=code, message=message, request_id=request_id, debug=debug
     ).model_dump(exclude_none=True)
-    return JSONResponse(status_code=status_code, content=body)
+    return JSONResponse(
+        status_code=status_code,
+        content=body,
+        headers={"X-Error-Code": code, "X-Request-ID": request_id},
+    )
 
 
 async def connector_error_handler(request: Request, exc: ConnectorError) -> JSONResponse:

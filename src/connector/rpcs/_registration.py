@@ -12,6 +12,7 @@ from connector.rpcs import (
     license_query,
     mrr_trend,
     partner_revenue,
+    read_audit,
     revenue_comparison,
     top_partners,
     upsell_opportunities,
@@ -30,6 +31,7 @@ _RPC_MODULES = [
     data_quality_signals,
     license_query,
     execute_sql,
+    read_audit,
 ]
 
 
