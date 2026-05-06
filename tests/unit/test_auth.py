@@ -23,11 +23,11 @@ def test_parse_api_key_config_skips_invalid_lines() -> None:
 
 @pytest.fixture()
 def authed_client(monkeypatch) -> TestClient:
-    monkeypatch.setenv("CONNECTOR_API_KEYS", "test-key-1=cron-1|backend_service_account|general")
+    monkeypatch.setenv("APP_CONNECTOR_API_KEYS", "test-key-1=cron-1|backend_service_account|general")
     # Bust the cached settings.
-    import connector.settings as s
+    from connector.settings import load_settings
 
-    s._settings = None
+    load_settings.cache_clear()
     from connector.app import create_app
 
     return TestClient(create_app())
@@ -40,16 +40,12 @@ def test_rpc_requires_api_key(authed_client: TestClient) -> None:
 
 
 def test_rpc_rejects_invalid_api_key(authed_client: TestClient) -> None:
-    r = authed_client.post(
-        "/rpc/describe_catalog", json={}, headers={"X-Connector-API-Key": "wrong"}
-    )
+    r = authed_client.post("/rpc/describe_catalog", json={}, headers={"X-Connector-API-Key": "wrong"})
     assert r.status_code == 401
 
 
 def test_describe_catalog_authed(authed_client: TestClient) -> None:
-    r = authed_client.post(
-        "/rpc/describe_catalog", json={}, headers={"X-Connector-API-Key": "test-key-1"}
-    )
+    r = authed_client.post("/rpc/describe_catalog", json={}, headers={"X-Connector-API-Key": "test-key-1"})
     assert r.status_code == 200
     body = r.json()
     assert "data" in body and "meta" in body

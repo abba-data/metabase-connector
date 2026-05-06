@@ -22,8 +22,8 @@ def main() -> int:
     out.parent.mkdir(parents=True, exist_ok=True)
 
     # Set deterministic env so generated doc doesn't depend on shell state.
-    os.environ.setdefault("AUDIT_STORE", "memory")
-    os.environ.setdefault("CONNECTOR_API_KEYS", "")
+    os.environ.setdefault("APP_AUDIT_STORE", "memory")
+    os.environ.setdefault("APP_CONNECTOR_API_KEYS", "")
 
     from connector.app import create_app
     from connector.audit.store import InMemoryAuditStore

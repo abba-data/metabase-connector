@@ -19,12 +19,12 @@ async def _drain() -> None:
 @pytest.fixture()
 def authed_client_with_audit(monkeypatch) -> tuple[TestClient, InMemoryAuditStore]:
     monkeypatch.setenv(
-        "CONNECTOR_API_KEYS",
+        "APP_CONNECTOR_API_KEYS",
         "general-key=cron-1|backend_service_account|general;ops-key=ops|backend_service_account|general,operator",
     )
-    import connector.settings as s
+    from connector.settings import load_settings
 
-    s._settings = None
+    load_settings.cache_clear()
     from connector.app import create_app
 
     store = InMemoryAuditStore()
@@ -119,7 +119,7 @@ def test_health_endpoints_not_audited(authed_client_with_audit) -> None:
 
 
 def test_read_audit_requires_operator_scope(authed_client_with_audit) -> None:
-    client, store = authed_client_with_audit
+    client, _store = authed_client_with_audit
     # general-key has only 'general' scope.
     r = client.post(
         "/rpc/read_audit",

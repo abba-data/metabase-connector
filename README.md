@@ -38,40 +38,39 @@ Per-RPC details: see [docs/rpcs/](docs/rpcs/) and the live OpenAPI doc at `/open
 ```bash
 git clone https://github.com/abba-data/metabase-connector.git
 cd metabase-connector
-python -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"
+uv sync --extra dev
 ```
 
-Requires Python 3.11+.
+Requires Python 3.12+ (managed automatically by `uv`).
 
 ### 2. Configure
 
-Copy `.env.example` → `.env` and fill it in.
+Copy `.env.example` → `.env` and fill it in. **All** settings carry the
+`APP_` prefix per CLAUDE.md (Pydantic-settings env_prefix); never read
+`os.environ` directly anywhere in your code.
 
 ```bash
-# Metabase
-METABASE_URL=https://analytics.atlasauthority.com
-METABASE_API_KEY=mb_xxxxxxxxxxxxxxxx        # see "Getting a Metabase API key" below
+APP_ENV=local                                  # local | staging | production
+APP_METABASE_URL=https://analytics.atlasauthority.com
+APP_METABASE_API_KEY=mb_xxxxxxxxxxxxxxxx       # SecretStr; see "Getting a Metabase API key"
 
-# Connector consumer keys — each line is `<key>=<id>|<consumer_type>|<scopes>`.
-# Multiple consumers separated by `;` or newlines.
-CONNECTOR_API_KEYS=dev-key=abba|interactive_script|general,raw_sql,operator
+# Format: <key>=<id>|<consumer_type>|<scopes>; multiple separated by `;`.
+APP_CONNECTOR_API_KEYS=dev-key=abba|interactive_script|general,raw_sql,operator
 
-# Audit log
-AUDIT_STORE=sqlite                          # or `memory` for ephemeral
-AUDIT_DB_PATH=./data/audit.sqlite
+APP_AUDIT_STORE=sqlite                         # or `memory` for ephemeral
+APP_AUDIT_DB_PATH=./data/audit.sqlite
 
 # Card IDs — set the ones you have, leave the rest unset.
 # Find a card ID in its Metabase URL: …/question/<id>-some-slug
-CARD_ID_PARTNER_REVENUE=
-CARD_ID_CHANNEL_SPLIT=
-CARD_ID_TOP_PARTNERS=
-CARD_ID_MRR_TREND=159
-CARD_ID_ARR_AT_RISK=
-CARD_ID_UPSELL_OPPORTUNITIES=
-CARD_ID_REVENUE_COMPARISON=
-CARD_ID_DATA_QUALITY_SIGNALS=
-CARD_ID_LICENSE_QUERY=
+APP_CARD_ID_PARTNER_REVENUE=
+APP_CARD_ID_CHANNEL_SPLIT=
+APP_CARD_ID_TOP_PARTNERS=
+APP_CARD_ID_MRR_TREND=159
+APP_CARD_ID_ARR_AT_RISK=
+APP_CARD_ID_UPSELL_OPPORTUNITIES=
+APP_CARD_ID_REVENUE_COMPARISON=
+APP_CARD_ID_DATA_QUALITY_SIGNALS=
+APP_CARD_ID_LICENSE_QUERY=
 ```
 
 **Consumer types** are one of: `backend_service_account`, `interactive_script`, `llm_agent`.
@@ -80,7 +79,9 @@ CARD_ID_LICENSE_QUERY=
 ### 3. Boot
 
 ```bash
-uvicorn connector.app:app --reload
+uv run python -m connector              # canonical entrypoint
+# or, with --reload during dev:
+uv run uvicorn connector.app:create_app --factory --reload
 ```
 
 Connector listens on `http://localhost:8000`.
@@ -338,7 +339,7 @@ Cardinality is capped (no `caller_id` dimension — that's what the audit log is
 
 ### Getting a Metabase API key
 
-In Metabase: **Admin → Settings → API keys → Create API key** → assign to a service-account user. Copy the generated `mb_…` key into `METABASE_API_KEY`.
+In Metabase: **Admin → Settings → API keys → Create API key** → assign to a service-account user. Copy the generated `mb_…` key into `APP_METABASE_API_KEY`.
 
 For production you should also follow [SEC-03A in the spec](specs/data-connector-tech-spec.md): create a dedicated service-account user, a dedicated collection holding only the v1 saved questions, and configure permissions so the collection is execute-readable only by the service account. That way even a leaked connector identity can only execute the questions you've blessed.
 
@@ -348,23 +349,25 @@ For production you should also follow [SEC-03A in the spec](specs/data-connector
 
 ```
 src/connector/
-  app.py                  # FastAPI app + middleware wiring
-  settings.py             # env-loaded config
+  __main__.py             # `python -m connector` entrypoint (calls create_app + uvicorn)
+  app.py                  # FastAPI app factory + register_middleware + register_*
+  settings.py             # AppSettings + load_settings (Pydantic, lru_cache)
+  logging_setup.py        # loguru setup_logging (called from lifespan)
+  observability.py        # ddtrace setup_datadog (no-op in LOCAL)
   errors.py               # typed error envelope + handlers
   registry.py             # RpcDescriptor + registry
-  rpc_config.py           # CARD_ID_* env loaders
   audit/                  # SEC-02: AuditRecord, AuditStore (SQLite + memory)
   clients/metabase.py     # CRT-02: Metabase HTTP client
   middleware/             # request-id, audit, telemetry
   models/                 # Response[T], ResponseMeta, ConsumerType, Scope
   rpcs/                   # one file per RPC handler
   secrets/                # SEC-03B: SecretProvider
-  security/               # SEC-01/04: auth, scopes, rate limit
+  security/               # SEC-01/04: auth, scopes, rate limit (slowapi)
   telemetry.py            # OPS-06: Prometheus instruments
 tests/
-  unit/                   # 116 tests — handlers, middleware, models, audit
-  contract/               # 29 tests — every RPC vs OpenAPI schema
-  e2e/                    # 3 tests — runs samples/* against live uvicorn
+  unit/                   # handlers, middleware, models, audit
+  contract/               # every RPC vs OpenAPI schema
+  e2e/                    # subprocess sample tests against live uvicorn
 samples/
   backend/                # scheduled-job-style consumer
   script/                 # interactive exploration script
@@ -377,25 +380,34 @@ tools/
   dump_openapi.py         # regenerates docs/openapi.json
   generate_rpc_docs.py    # regenerates docs/rpcs/
 .github/workflows/
-  ci.yml                  # lint, mypy, unit (3.11/3.12/3.13), contract, e2e
+  ci.yml                  # lint, basedpyright, unit (3.12/3.13), contract, e2e
   openapi.yml             # snapshot freshness + breaking-change diff
 ```
 
 ## Testing
 
+CLAUDE.md's pre-commit gate:
+
 ```bash
-pytest                    # all 148 tests
-pytest tests/unit         # fast unit tests
-pytest tests/contract     # OpenAPI schema conformance
-pytest tests/e2e          # subprocess sample tests against live uvicorn
-ruff check . && ruff format --check .
+uv run ruff format --check .   # formatting
+uv run ruff check .            # linting
+uv run basedpyright            # type checking
+uv run pytest                  # tests
+```
+
+Per-suite:
+
+```bash
+uv run pytest tests/unit         # fast unit tests
+uv run pytest tests/contract     # OpenAPI schema conformance
+uv run pytest tests/e2e          # subprocess sample tests against live uvicorn
 ```
 
 After adding or changing an RPC:
 
 ```bash
-python tools/dump_openapi.py        # regenerate docs/openapi.json
-python tools/generate_rpc_docs.py   # regenerate docs/rpcs/
+uv run python tools/dump_openapi.py        # regenerate docs/openapi.json
+uv run python tools/generate_rpc_docs.py   # regenerate docs/rpcs/
 ```
 
 CI verifies both regenerations are up to date.

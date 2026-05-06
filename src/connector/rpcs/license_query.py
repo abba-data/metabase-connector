@@ -8,7 +8,6 @@ from pydantic import BaseModel, Field
 
 from connector.models import Response, Scope
 from connector.registry import RpcDescriptor
-from connector.rpc_config import CARD_ID_LICENSE_QUERY
 from connector.rpcs._helpers import execute_card_rows, wrap
 from connector.security.scopes import require_scope
 
@@ -64,7 +63,7 @@ DESCRIPTOR = RpcDescriptor(
     description="Flexible license lookup with named optional filters. Active-license rule applied via WHF-01 view.",
     input_model=LicenseQueryInput,
     output_model=LicenseQueryOutput,
-    metabase_card_id=CARD_ID_LICENSE_QUERY,
+    metabase_card_id=None,
     required_scope=Scope.GENERAL,
 )
 
@@ -83,9 +82,7 @@ def _params(inp: LicenseQueryInput) -> list[dict]:
         if value is None:
             continue
         out.append({"type": ptype, "target": ["variable", ["template-tag", name]], "value": value})
-    out.append(
-        {"type": "number/=", "target": ["variable", ["template-tag", "limit"]], "value": inp.limit}
-    )
+    out.append({"type": "number/=", "target": ["variable", ["template-tag", "limit"]], "value": inp.limit})
     return out
 
 
@@ -120,12 +117,8 @@ async def license_query(
             status=r.get("status"),
             hosting=r.get("hosting"),
             license_type=r.get("license_type") or r.get("licenseType"),
-            maintenance_start_date=_coerce_date(
-                r.get("maintenance_start_date") or r.get("maintenanceStartDate")
-            ),
-            maintenance_end_date=_coerce_date(
-                r.get("maintenance_end_date") or r.get("maintenanceEndDate")
-            ),
+            maintenance_start_date=_coerce_date(r.get("maintenance_start_date") or r.get("maintenanceStartDate")),
+            maintenance_end_date=_coerce_date(r.get("maintenance_end_date") or r.get("maintenanceEndDate")),
         )
         for r in rows
     ]

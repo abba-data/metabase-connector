@@ -10,60 +10,22 @@ from connector.clients.metabase import MetabaseClient
 
 @pytest.fixture()
 def client(monkeypatch) -> TestClient:
-    monkeypatch.setenv("CONNECTOR_API_KEYS", "test-key=cron-1|backend_service_account|general")
-    monkeypatch.setenv("METABASE_API_KEY", "stub")
-    monkeypatch.setenv("CARD_ID_PARTNER_REVENUE", "1001")
-    monkeypatch.setenv("CARD_ID_CHANNEL_SPLIT", "1002")
-    monkeypatch.setenv("CARD_ID_TOP_PARTNERS", "1003")
-    monkeypatch.setenv("CARD_ID_MRR_TREND", "159")
-    monkeypatch.setenv("CARD_ID_ARR_AT_RISK", "1006")
-    monkeypatch.setenv("CARD_ID_UPSELL_OPPORTUNITIES", "1007")
-    monkeypatch.setenv("CARD_ID_REVENUE_COMPARISON", "1008")
-    monkeypatch.setenv("CARD_ID_DATA_QUALITY_SIGNALS", "1009")
-    monkeypatch.setenv("CARD_ID_LICENSE_QUERY", "1010")
-
-    # Bust caches.
-    import connector.settings as s
-
-    s._settings = None
-    import importlib
-
-    import connector.rpc_config as rc
-
-    importlib.reload(rc)
-    import connector.rpcs.partner_revenue as pr
-
-    importlib.reload(pr)
-    import connector.rpcs.channel_split as cs
-
-    importlib.reload(cs)
-    import connector.rpcs.top_partners as tp
-
-    importlib.reload(tp)
-    import connector.rpcs.mrr_trend as mt
-
-    importlib.reload(mt)
-    import connector.rpcs.arr_at_risk as ar
-
-    importlib.reload(ar)
-    import connector.rpcs.upsell_opportunities as up
-
-    importlib.reload(up)
-    import connector.rpcs.revenue_comparison as rev
-
-    importlib.reload(rev)
-    import connector.rpcs.data_quality_signals as dq
-
-    importlib.reload(dq)
-    import connector.rpcs.license_query as lq
-
-    importlib.reload(lq)
-    import connector.rpcs._registration as reg
-
-    importlib.reload(reg)
+    monkeypatch.setenv("APP_CONNECTOR_API_KEYS", "test-key=cron-1|backend_service_account|general")
+    monkeypatch.setenv("APP_METABASE_API_KEY", "stub")
+    monkeypatch.setenv("APP_CARD_ID_PARTNER_REVENUE", "1001")
+    monkeypatch.setenv("APP_CARD_ID_CHANNEL_SPLIT", "1002")
+    monkeypatch.setenv("APP_CARD_ID_TOP_PARTNERS", "1003")
+    monkeypatch.setenv("APP_CARD_ID_MRR_TREND", "159")
+    monkeypatch.setenv("APP_CARD_ID_ARR_AT_RISK", "1006")
+    monkeypatch.setenv("APP_CARD_ID_UPSELL_OPPORTUNITIES", "1007")
+    monkeypatch.setenv("APP_CARD_ID_REVENUE_COMPARISON", "1008")
+    monkeypatch.setenv("APP_CARD_ID_DATA_QUALITY_SIGNALS", "1009")
+    monkeypatch.setenv("APP_CARD_ID_LICENSE_QUERY", "1010")
 
     from connector.app import create_app
+    from connector.settings import load_settings
 
+    load_settings.cache_clear()
     app = create_app()
 
     captured: dict[str, Any] = {"calls": []}
@@ -86,9 +48,7 @@ def client(monkeypatch) -> TestClient:
 HEADERS = {"X-Connector-API-Key": "test-key"}
 
 
-def _stub_card(
-    canned: dict[int, dict], card_id: int, rows: list[list], col_names: list[str]
-) -> None:
+def _stub_card(canned: dict[int, dict], card_id: int, rows: list[list], col_names: list[str]) -> None:
     canned[card_id] = {"data": {"rows": rows, "cols": [{"name": n} for n in col_names]}}
 
 

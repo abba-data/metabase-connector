@@ -1856,7 +1856,7 @@
     },
     "securitySchemes": {
       "ConnectorApiKey": {
-        "description": "Per-consumer API key. The header value maps to a ConsumerIdentity (id, consumer_type, scope set) configured via CONNECTOR_API_KEYS.",
+        "description": "Per-consumer API key. The header value maps to a ConsumerIdentity (id, consumer_type, scope set) configured via APP_CONNECTOR_API_KEYS.",
         "in": "header",
         "name": "X-Connector-API-Key",
         "type": "apiKey"

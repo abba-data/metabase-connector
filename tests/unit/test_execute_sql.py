@@ -10,36 +10,32 @@ from connector.clients.metabase import MetabaseClient
 
 @pytest.fixture()
 def general_only_client(monkeypatch) -> TestClient:
-    monkeypatch.setenv("CONNECTOR_API_KEYS", "key-general=cron|backend_service_account|general")
-    monkeypatch.setenv("METABASE_API_KEY", "stub")
-    import connector.settings as s
+    monkeypatch.setenv("APP_CONNECTOR_API_KEYS", "key-general=cron|backend_service_account|general")
+    monkeypatch.setenv("APP_METABASE_API_KEY", "stub")
+    from connector.settings import load_settings
 
-    s._settings = None
+    load_settings.cache_clear()
     from connector.app import create_app
 
     app = create_app()
-    app.state.metabase = MetabaseClient(
-        base_url="http://metabase.test", api_key="stub", timeout_seconds=5.0
-    )
+    app.state.metabase = MetabaseClient(base_url="http://metabase.test", api_key="stub", timeout_seconds=5.0)
     return TestClient(app)
 
 
 @pytest.fixture()
 def raw_sql_client(monkeypatch) -> TestClient:
     monkeypatch.setenv(
-        "CONNECTOR_API_KEYS",
+        "APP_CONNECTOR_API_KEYS",
         "key-raw=ana|interactive_script|general,raw_sql",
     )
-    monkeypatch.setenv("METABASE_API_KEY", "stub")
-    import connector.settings as s
+    monkeypatch.setenv("APP_METABASE_API_KEY", "stub")
+    from connector.settings import load_settings
 
-    s._settings = None
+    load_settings.cache_clear()
     from connector.app import create_app
 
     app = create_app()
-    app.state.metabase = MetabaseClient(
-        base_url="http://metabase.test", api_key="stub", timeout_seconds=5.0
-    )
+    app.state.metabase = MetabaseClient(base_url="http://metabase.test", api_key="stub", timeout_seconds=5.0)
     return TestClient(app)
 
 
@@ -73,9 +69,7 @@ def test_execute_sql_success_returns_columns_rows_envelope(raw_sql_client: TestC
         "running_time": 12,
         "status": "completed",
     }
-    route = respx.post("http://metabase.test/api/dataset").mock(
-        return_value=httpx.Response(200, json=payload)
-    )
+    route = respx.post("http://metabase.test/api/dataset").mock(return_value=httpx.Response(200, json=payload))
     r = raw_sql_client.post(
         "/rpc/execute_sql",
         headers={"X-Connector-API-Key": "key-raw"},
@@ -143,9 +137,7 @@ def test_execute_sql_propagates_metabase_4xx_as_metabase_error(raw_sql_client: T
 
 @respx.mock
 def test_execute_sql_propagates_metabase_5xx_as_unavailable(raw_sql_client: TestClient) -> None:
-    respx.post("http://metabase.test/api/dataset").mock(
-        return_value=httpx.Response(503, text="upstream down")
-    )
+    respx.post("http://metabase.test/api/dataset").mock(return_value=httpx.Response(503, text="upstream down"))
     r = raw_sql_client.post(
         "/rpc/execute_sql",
         headers={"X-Connector-API-Key": "key-raw"},

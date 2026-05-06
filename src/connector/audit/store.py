@@ -196,15 +196,10 @@ class SQLiteAuditStore:
             clauses.append("status = ?")
             params.append(status.value)
         where = ("WHERE " + " AND ".join(clauses)) if clauses else ""
-        sql = f"""
-            SELECT timestamp, request_id, caller_id, consumer_type, scope,
-                   rpc_name, rpc_version, parameters, kind, source_question_id,
-                   latency_ms, row_count, status, error_code, connector_version
-            FROM audit_records
-            {where}
-            ORDER BY timestamp DESC
-            LIMIT ? OFFSET ?
-        """
+        # `where` comes from a closed set of literal clauses above; values bind
+        # via `?` placeholders, so this concat is safe by construction.
+        select_cols = "timestamp, request_id, caller_id, consumer_type, scope, rpc_name, rpc_version, parameters, kind, source_question_id, latency_ms, row_count, status, error_code, connector_version"
+        sql = f"SELECT {select_cols} FROM audit_records {where} ORDER BY timestamp DESC LIMIT ? OFFSET ?"  # noqa: S608
         params.extend([limit, offset])
         with self._lock:
             cursor = self._conn.execute(sql, params)

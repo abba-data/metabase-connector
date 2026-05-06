@@ -39,9 +39,7 @@ def _free_port() -> int:
 class _ServerThread(threading.Thread):
     def __init__(self, app, port: int) -> None:
         super().__init__(daemon=True)
-        self._config = uvicorn.Config(
-            app=app, host="127.0.0.1", port=port, log_level="warning", lifespan="on"
-        )
+        self._config = uvicorn.Config(app=app, host="127.0.0.1", port=port, log_level="warning", lifespan="on")
         self._server = uvicorn.Server(self._config)
 
     def run(self) -> None:
@@ -75,16 +73,16 @@ def _stub_metabase_card(monkeypatch, canned: dict[int, dict]) -> None:
 def live_connector(monkeypatch) -> Iterator[tuple[str, str]]:
     """Boot a real uvicorn process in a thread, return (base_url, api_key)."""
     monkeypatch.setenv(
-        "CONNECTOR_API_KEYS",
+        "APP_CONNECTOR_API_KEYS",
         "e2e-key=e2e|backend_service_account|general,raw_sql,operator",
     )
-    monkeypatch.setenv("METABASE_API_KEY", "stub")
-    monkeypatch.setenv("CARD_ID_PARTNER_REVENUE", "1001")
-    monkeypatch.setenv("CARD_ID_CHANNEL_SPLIT", "1002")
-    monkeypatch.setenv("CARD_ID_ARR_AT_RISK", "1006")
-    import connector.settings as s
+    monkeypatch.setenv("APP_METABASE_API_KEY", "stub")
+    monkeypatch.setenv("APP_CARD_ID_PARTNER_REVENUE", "1001")
+    monkeypatch.setenv("APP_CARD_ID_CHANNEL_SPLIT", "1002")
+    monkeypatch.setenv("APP_CARD_ID_ARR_AT_RISK", "1006")
+    from connector.settings import load_settings
 
-    s._settings = None
+    load_settings.cache_clear()
 
     canned: dict[int, dict] = {
         1001: {
@@ -120,16 +118,6 @@ def live_connector(monkeypatch) -> Iterator[tuple[str, str]]:
         },
     }
     _stub_metabase_card(monkeypatch, canned)
-
-    # Reload RPC modules so they pick up the new card-id env.
-    import importlib
-
-    import connector.rpc_config as rc
-
-    importlib.reload(rc)
-    for name in ("partner_revenue", "channel_split", "arr_at_risk"):
-        importlib.reload(importlib.import_module(f"connector.rpcs.{name}"))
-    importlib.reload(importlib.import_module("connector.rpcs._registration"))
 
     app = create_app(audit_store=InMemoryAuditStore())
     app.state.metabase = MetabaseClient(base_url="http://stub", api_key="stub", timeout_seconds=5.0)

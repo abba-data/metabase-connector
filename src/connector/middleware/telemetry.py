@@ -25,9 +25,7 @@ class TelemetryMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self._metrics = metrics
 
-    async def dispatch(
-        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
-    ) -> Response:
+    async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
         rpc = _rpc_name(request.url.path)
         if rpc is None:
             return await call_next(request)
@@ -36,17 +34,11 @@ class TelemetryMiddleware(BaseHTTPMiddleware):
         response: Response | None = None
         try:
             response = await call_next(request)
-            return response
+            return response  # noqa: RET504  finally clause needs the variable
         finally:
             elapsed = time.perf_counter() - start
             consumer: ConsumerIdentity | None = getattr(request.state, "consumer", None)
             consumer_type = consumer.consumer_type.value if consumer else "anonymous"
-            status = (
-                "success" if response is not None and 200 <= response.status_code < 400 else "error"
-            )
-            self._metrics.requests_total.labels(
-                rpc=rpc, consumer_type=consumer_type, status=status
-            ).inc()
-            self._metrics.latency_seconds.labels(rpc=rpc, consumer_type=consumer_type).observe(
-                elapsed
-            )
+            status = "success" if response is not None and 200 <= response.status_code < 400 else "error"
+            self._metrics.requests_total.labels(rpc=rpc, consumer_type=consumer_type, status=status).inc()
+            self._metrics.latency_seconds.labels(rpc=rpc, consumer_type=consumer_type).observe(elapsed)

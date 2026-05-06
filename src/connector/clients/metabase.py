@@ -104,9 +104,7 @@ class MetabaseClient:
         }
         return await self._post_query("/api/dataset", body=body, timeout=timeout)
 
-    async def _post_query(
-        self, path: str, *, body: dict[str, Any], timeout: float | None
-    ) -> dict[str, Any]:
+    async def _post_query(self, path: str, *, body: dict[str, Any], timeout: float | None) -> dict[str, Any]:
         request_timeout = httpx.Timeout(timeout if timeout is not None else self._timeout)
         try:
             r = await self._client.post(path, json=body, timeout=request_timeout)

@@ -43,10 +43,7 @@ def _record(
 
 @pytest.fixture(params=["memory", "sqlite"])
 async def store(request, tmp_path: Path):
-    if request.param == "memory":
-        s = InMemoryAuditStore()
-    else:
-        s = SQLiteAuditStore(str(tmp_path / "audit.sqlite"))
+    s = InMemoryAuditStore() if request.param == "memory" else SQLiteAuditStore(str(tmp_path / "audit.sqlite"))
     yield s
     await s.aclose()
 

@@ -14,9 +14,7 @@ log = logging.getLogger("connector.request")
 
 
 class RequestIDMiddleware(BaseHTTPMiddleware):
-    async def dispatch(
-        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
-    ) -> Response:
+    async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
         rid = request.headers.get(REQUEST_ID_HEADER) or uuid.uuid4().hex
         request.state.request_id = rid
         # consumer is populated downstream by SEC-01A's auth middleware (or tests).

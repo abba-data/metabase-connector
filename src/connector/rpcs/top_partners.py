@@ -8,7 +8,6 @@ from pydantic import BaseModel, Field, model_validator
 
 from connector.models import Response, Scope
 from connector.registry import RpcDescriptor
-from connector.rpc_config import CARD_ID_TOP_PARTNERS
 from connector.rpcs._helpers import execute_card_rows, wrap
 from connector.security.scopes import require_scope
 
@@ -45,7 +44,7 @@ DESCRIPTOR = RpcDescriptor(
     description="Ranked partner list by net revenue over the date window.",
     input_model=TopPartnersInput,
     output_model=TopPartnersOutput,
-    metabase_card_id=CARD_ID_TOP_PARTNERS,
+    metabase_card_id=None,
     required_scope=Scope.GENERAL,
 )
 

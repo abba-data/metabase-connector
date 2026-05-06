@@ -10,7 +10,6 @@ from pydantic import BaseModel, model_validator
 
 from connector.models import Response, Scope
 from connector.registry import RpcDescriptor
-from connector.rpc_config import CARD_ID_REVENUE_COMPARISON
 from connector.rpcs._helpers import execute_card_rows, wrap
 from connector.security.scopes import require_scope
 
@@ -102,7 +101,7 @@ DESCRIPTOR = RpcDescriptor(
     description="Period-over-period net-revenue comparison split by channel / sale_type / partner.",
     input_model=RevenueComparisonInput,
     output_model=RevenueComparisonOutput,
-    metabase_card_id=CARD_ID_REVENUE_COMPARISON,
+    metabase_card_id=None,
     required_scope=Scope.GENERAL,
 )
 

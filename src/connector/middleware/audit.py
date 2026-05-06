@@ -84,9 +84,7 @@ class AuditMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self._store = store
 
-    async def dispatch(
-        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
-    ) -> Response:
+    async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
         path = request.url.path
         if not path.startswith(_AUDIT_PATH_PREFIX):
             return await call_next(request)
@@ -109,9 +107,7 @@ class AuditMiddleware(BaseHTTPMiddleware):
             request_id = getattr(request.state, "request_id", "unknown")
 
             if response is not None and 400 <= response.status_code < 600:
-                error_code = (
-                    response.headers.get("X-Error-Code") or error_code or _peek_error_code(response)
-                )
+                error_code = response.headers.get("X-Error-Code") or error_code or _peek_error_code(response)
 
             descriptor = registry.get(rpc_name) if rpc_name else None
             kind: Kind | None = None
@@ -140,7 +136,10 @@ class AuditMiddleware(BaseHTTPMiddleware):
                 error_code=error_code if not status_ok else None,
                 connector_version=__version__,
             )
-            asyncio.create_task(_write(self._store, record))
+            # Hold the task on instance state so it isn't garbage-collected
+            # mid-flight (RUF006). Replaced on each call; the prior task may
+            # still complete in the background.
+            self._inflight_write = asyncio.create_task(_write(self._store, record))
 
         return response  # type: ignore[return-value]
 
