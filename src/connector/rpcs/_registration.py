@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from fastapi import FastAPI
 
 from connector.registry import registry
@@ -18,7 +20,10 @@ from connector.rpcs import (
     upsell_opportunities,
 )
 
-# Order matters only for describe_catalog presenting a stable list.
+if TYPE_CHECKING:
+    from connector.settings import AppSettings
+
+# Order is the order describe_catalog presents them in.
 _RPC_MODULES = [
     describe_catalog,
     partner_revenue,
@@ -35,13 +40,20 @@ _RPC_MODULES = [
 ]
 
 
-def register_rpcs(app: FastAPI) -> None:
-    """Single boot-time mount path. No FastAPI route may exist outside this function.
+def register_rpcs(app: FastAPI, settings: AppSettings) -> None:
+    """Mount every RPC route once at boot. Per CLAUDE.md the registry is the
+    only place where 'what RPCs exist' lives; no parallel hand-maintained list.
 
-    Each RPC module exposes:
-      - DESCRIPTOR: RpcDescriptor
-      - router: APIRouter with one POST /rpc/<name>
+    Card IDs come from `settings` (Pydantic-loaded), not module-level env reads.
     """
     for mod in _RPC_MODULES:
-        registry.register(mod.DESCRIPTOR)
+        descriptor = mod.DESCRIPTOR
+        card_attr = f"card_id_{descriptor.name}"
+        card_id = getattr(settings, card_attr, None)
+        if card_id is not None:
+            # Mutate the module-level descriptor so handlers that reference
+            # `mod.DESCRIPTOR` see the wired card id. Pydantic v2 models are
+            # mutable by default; this happens once at boot.
+            descriptor.metabase_card_id = card_id
+        registry.register(descriptor)
         app.include_router(mod.router)

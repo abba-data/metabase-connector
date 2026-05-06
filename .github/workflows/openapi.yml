@@ -15,17 +15,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v4
         with:
-          python-version: "3.13"
-          cache: pip
-      - run: pip install -e ".[dev]"
+          enable-cache: true
+      - run: uv python install 3.13
+      - run: uv sync --extra dev
       - name: regenerate snapshot
-        run: python tools/dump_openapi.py docs/openapi.regen.json
+        run: uv run python tools/dump_openapi.py docs/openapi.regen.json
       - name: assert committed snapshot matches runtime
         run: |
           if ! diff -u docs/openapi.json docs/openapi.regen.json; then
-            echo "::error::docs/openapi.json is stale. Run: python tools/dump_openapi.py"
+            echo "::error::docs/openapi.json is stale. Run: uv run python tools/dump_openapi.py"
             exit 1
           fi
 

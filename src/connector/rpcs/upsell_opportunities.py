@@ -8,7 +8,6 @@ from pydantic import BaseModel, Field
 
 from connector.models import Response, Scope
 from connector.registry import RpcDescriptor
-from connector.rpc_config import CARD_ID_UPSELL_OPPORTUNITIES
 from connector.rpcs._helpers import execute_card_rows, wrap
 from connector.security.scopes import require_scope
 
@@ -48,7 +47,7 @@ DESCRIPTOR = RpcDescriptor(
     description="Tier-grown licenses approaching renewal with projected re-priced ARR. Projection arithmetic lives in saved-question SQL.",
     input_model=UpsellOpportunitiesInput,
     output_model=UpsellOpportunitiesOutput,
-    metabase_card_id=CARD_ID_UPSELL_OPPORTUNITIES,
+    metabase_card_id=None,
     required_scope=Scope.GENERAL,
 )
 

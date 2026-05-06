@@ -7,13 +7,13 @@ from fastapi.testclient import TestClient
 @pytest.fixture()
 def tight_limit_client(monkeypatch) -> TestClient:
     """Tight default limit (3/minute) so tests trigger 429 quickly."""
-    monkeypatch.setenv("CONNECTOR_API_KEYS", "k1=u1|backend_service_account|general")
-    monkeypatch.setenv("RATE_LIMIT_DEFAULT", "3/minute")
-    monkeypatch.setenv("RATE_LIMIT_RAW_SQL", "1/minute")
-    monkeypatch.setenv("RATE_LIMIT_OPERATOR", "5/minute")
-    import connector.settings as s
+    monkeypatch.setenv("APP_CONNECTOR_API_KEYS", "k1=u1|backend_service_account|general")
+    monkeypatch.setenv("APP_RATE_LIMIT_DEFAULT", "3/minute")
+    monkeypatch.setenv("APP_RATE_LIMIT_RAW_SQL", "1/minute")
+    monkeypatch.setenv("APP_RATE_LIMIT_OPERATOR", "5/minute")
+    from connector.settings import load_settings
 
-    s._settings = None
+    load_settings.cache_clear()
     from connector.app import create_app
     from connector.audit.store import InMemoryAuditStore
 

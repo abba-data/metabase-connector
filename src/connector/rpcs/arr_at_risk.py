@@ -8,7 +8,6 @@ from pydantic import BaseModel, Field
 
 from connector.models import Response, Scope
 from connector.registry import RpcDescriptor
-from connector.rpc_config import CARD_ID_ARR_AT_RISK
 from connector.rpcs._helpers import execute_card_rows, wrap
 from connector.security.scopes import require_scope
 
@@ -43,7 +42,7 @@ DESCRIPTOR = RpcDescriptor(
     description="Licenses whose maintenanceEndDate falls within horizon_days, broken down by overall/partner/app.",
     input_model=ArrAtRiskInput,
     output_model=ArrAtRiskOutput,
-    metabase_card_id=CARD_ID_ARR_AT_RISK,
+    metabase_card_id=None,
     required_scope=Scope.GENERAL,
 )
 

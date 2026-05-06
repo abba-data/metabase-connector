@@ -9,7 +9,6 @@ from pydantic import BaseModel, Field, model_validator
 
 from connector.models import Response, Scope
 from connector.registry import RpcDescriptor
-from connector.rpc_config import CARD_ID_CHANNEL_SPLIT
 from connector.rpcs._helpers import execute_card_rows, wrap
 from connector.security.scopes import require_scope
 
@@ -22,9 +21,7 @@ LicenseTypeLiteral = Literal["COMMERCIAL", "ACADEMIC"]
 class ChannelSplitInput(BaseModel):
     start_date: date
     end_date: date
-    license_types: list[LicenseTypeLiteral] = Field(
-        default_factory=lambda: ["COMMERCIAL", "ACADEMIC"]
-    )
+    license_types: list[LicenseTypeLiteral] = Field(default_factory=lambda: ["COMMERCIAL", "ACADEMIC"])
 
     @model_validator(mode="after")
     def _check_dates(self) -> ChannelSplitInput:
@@ -51,7 +48,7 @@ DESCRIPTOR = RpcDescriptor(
     description="Partner vs direct net-revenue split with line counts and distinct license counts. Channel = partnerName IS NOT NULL.",
     input_model=ChannelSplitInput,
     output_model=ChannelSplitOutput,
-    metabase_card_id=CARD_ID_CHANNEL_SPLIT,
+    metabase_card_id=None,
     required_scope=Scope.GENERAL,
 )
 

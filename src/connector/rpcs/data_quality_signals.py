@@ -8,7 +8,6 @@ from pydantic import BaseModel
 
 from connector.models import Response, Scope
 from connector.registry import RpcDescriptor
-from connector.rpc_config import CARD_ID_DATA_QUALITY_SIGNALS
 from connector.rpcs._helpers import execute_card_rows, wrap
 from connector.security.scopes import require_scope
 
@@ -42,7 +41,7 @@ DESCRIPTOR = RpcDescriptor(
     description="Per-check data-quality signals (OK/WATCH/ACTION) with supporting count or sample. Same view for consumers and operators.",
     input_model=DataQualitySignalsInput,
     output_model=DataQualitySignalsOutput,
-    metabase_card_id=CARD_ID_DATA_QUALITY_SIGNALS,
+    metabase_card_id=None,
     required_scope=Scope.GENERAL,
 )
 

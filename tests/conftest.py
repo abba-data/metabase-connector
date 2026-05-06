@@ -5,10 +5,20 @@ import os
 import pytest
 from fastapi.testclient import TestClient
 
-os.environ.setdefault("METABASE_URL", "http://metabase.test")
-os.environ.setdefault("METABASE_API_KEY", "")
-os.environ.setdefault("CONNECTOR_API_KEYS", "")
-os.environ["AUDIT_STORE"] = "memory"
+# Environment defaults for tests — applied before any test module imports the app.
+os.environ.setdefault("APP_METABASE_URL", "http://metabase.test")
+os.environ.setdefault("APP_METABASE_API_KEY", "")
+os.environ.setdefault("APP_CONNECTOR_API_KEYS", "")
+os.environ["APP_AUDIT_STORE"] = "memory"
+os.environ.setdefault("APP_ENV", "local")
+
+
+@pytest.fixture(autouse=True)
+def _bust_settings_cache() -> None:
+    """Tests mutate env via monkeypatch; clear lru_cache so each test sees its own settings."""
+    from connector.settings import load_settings
+
+    load_settings.cache_clear()
 
 
 @pytest.fixture()

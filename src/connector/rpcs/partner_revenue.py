@@ -9,7 +9,6 @@ from pydantic import BaseModel, Field, model_validator
 
 from connector.models import Response, Scope
 from connector.registry import RpcDescriptor
-from connector.rpc_config import CARD_ID_PARTNER_REVENUE
 from connector.rpcs._helpers import execute_card_rows, wrap
 from connector.security.scopes import require_scope
 
@@ -23,9 +22,7 @@ class PartnerRevenueInput(BaseModel):
     start_date: date
     end_date: date
     consolidate: bool = True
-    license_types: list[LicenseTypeLiteral] = Field(
-        default_factory=lambda: ["COMMERCIAL", "ACADEMIC"]
-    )
+    license_types: list[LicenseTypeLiteral] = Field(default_factory=lambda: ["COMMERCIAL", "ACADEMIC"])
 
     @model_validator(mode="after")
     def _check_dates(self) -> PartnerRevenueInput:
@@ -52,7 +49,7 @@ DESCRIPTOR = RpcDescriptor(
     description="Net revenue per partner over the date window. Applies canonical partner scope, license-type filter, and vendorAmount sign convention.",
     input_model=PartnerRevenueInput,
     output_model=PartnerRevenueOutput,
-    metabase_card_id=CARD_ID_PARTNER_REVENUE,
+    metabase_card_id=None,
     required_scope=Scope.GENERAL,
 )
 

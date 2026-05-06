@@ -89,9 +89,7 @@ def _is_public(path: str) -> bool:
 
 
 def _envelope(code: str, message: str, request_id: str, status: int) -> Response:
-    body = ErrorEnvelope(code=code, message=message, request_id=request_id).model_dump(
-        exclude_none=True
-    )
+    body = ErrorEnvelope(code=code, message=message, request_id=request_id).model_dump(exclude_none=True)
     import json
 
     return Response(
@@ -107,9 +105,7 @@ class APIKeyAuthMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self._keys = key_to_identity
 
-    async def dispatch(
-        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
-    ) -> Response:
+    async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
         if _is_public(request.url.path):
             return await call_next(request)
         rid = getattr(request.state, "request_id", "unknown")

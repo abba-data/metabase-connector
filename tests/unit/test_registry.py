@@ -41,11 +41,7 @@ def test_duplicate_name_rejected() -> None:
 
 def test_as_catalog_serializes_schemas() -> None:
     r = _Registry()
-    r.register(
-        RpcDescriptor(
-            name="demo", version="1.0.0", description="d", input_model=_Input, output_model=_Output
-        )
-    )
+    r.register(RpcDescriptor(name="demo", version="1.0.0", description="d", input_model=_Input, output_model=_Output))
     cat = r.as_catalog()
     assert len(cat) == 1
     entry = cat[0]

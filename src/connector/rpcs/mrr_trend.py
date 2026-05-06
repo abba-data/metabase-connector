@@ -9,7 +9,6 @@ from pydantic import BaseModel, Field
 
 from connector.models import Response, Scope
 from connector.registry import RpcDescriptor
-from connector.rpc_config import CARD_ID_MRR_TREND
 from connector.rpcs._helpers import execute_card_rows, wrap
 from connector.security.scopes import require_scope
 
@@ -38,7 +37,7 @@ DESCRIPTOR = RpcDescriptor(
     description="Monthly MRR series with customer-type and partner-type breakdowns. Backed by Metabase #159 methodology.",
     input_model=MrrTrendInput,
     output_model=MrrTrendOutput,
-    metabase_card_id=CARD_ID_MRR_TREND,
+    metabase_card_id=None,
     required_scope=Scope.GENERAL,
 )
 
@@ -78,14 +77,10 @@ def _reshape(rows: list[dict[str, Any]]) -> list[MrrPoint]:
         point.mrr = point.mrr + contribution
         ct = r.get("customer_type")
         if ct is not None:
-            point.by_customer_type[str(ct)] = (
-                point.by_customer_type.get(str(ct), Decimal(0)) + contribution
-            )
+            point.by_customer_type[str(ct)] = point.by_customer_type.get(str(ct), Decimal(0)) + contribution
         pt = r.get("partner_type")
         if pt is not None:
-            point.by_partner_type[str(pt)] = (
-                point.by_partner_type.get(str(pt), Decimal(0)) + contribution
-            )
+            point.by_partner_type[str(pt)] = point.by_partner_type.get(str(pt), Decimal(0)) + contribution
     return [by_month[k] for k in sorted(by_month.keys())]
 
 

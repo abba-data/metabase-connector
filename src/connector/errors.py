@@ -98,9 +98,7 @@ def _envelope_response(
     status_code: int,
     debug: dict[str, Any] | None = None,
 ) -> JSONResponse:
-    body = ErrorEnvelope(code=code, message=message, request_id=request_id, debug=debug).model_dump(
-        exclude_none=True
-    )
+    body = ErrorEnvelope(code=code, message=message, request_id=request_id, debug=debug).model_dump(exclude_none=True)
     return JSONResponse(
         status_code=status_code,
         content=body,
@@ -118,9 +116,7 @@ async def connector_error_handler(request: Request, exc: ConnectorError) -> JSON
     )
 
 
-async def validation_exception_handler(
-    request: Request, exc: RequestValidationError
-) -> JSONResponse:
+async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
     return _envelope_response(
         code=ErrorCode.VALIDATION_ERROR,
         message="Request failed validation.",

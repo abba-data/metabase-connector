@@ -49,8 +49,9 @@ def main() -> int:
     out = json.dumps(payload, indent=2, default=str)
 
     if len(sys.argv) > 1:
-        with open(sys.argv[1], "w") as f:
-            f.write(out)
+        from pathlib import Path
+
+        Path(sys.argv[1]).write_text(out)
         print(f"wrote {sys.argv[1]} ({payload['data']['rows'].__len__()} rows)")
     else:
         print(out)

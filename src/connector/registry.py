@@ -56,9 +56,7 @@ class _Registry:
                 "last_updated": d.last_updated.isoformat() if d.last_updated else None,
                 "deprecated_at": d.deprecated_at.isoformat() if d.deprecated_at else None,
                 "input_schema": d.input_model.model_json_schema(),
-                "output_schema": (
-                    d.output_model.model_json_schema() if d.output_model is not None else None
-                ),
+                "output_schema": (d.output_model.model_json_schema() if d.output_model is not None else None),
             }
             for d in self._rpcs.values()
         ]

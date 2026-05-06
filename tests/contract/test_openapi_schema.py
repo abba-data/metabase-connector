@@ -45,9 +45,7 @@ def test_openapi_doc_is_valid_openapi_3(openapi_doc: dict[str, Any]) -> None:
         "read_audit",
     ],
 )
-def test_every_rpc_response_includes_meta_envelope(
-    openapi_doc: dict[str, Any], rpc_name: str
-) -> None:
+def test_every_rpc_response_includes_meta_envelope(openapi_doc: dict[str, Any], rpc_name: str) -> None:
     """Every RPC's 200 response must be Response[T] with required meta fields."""
     path = f"/rpc/{rpc_name}"
     op = openapi_doc["paths"][path]["post"]

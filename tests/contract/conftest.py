@@ -18,50 +18,28 @@ def contract_client(monkeypatch) -> TestClient:
     before the contract surface is exercised.
     """
     monkeypatch.setenv(
-        "CONNECTOR_API_KEYS",
+        "APP_CONNECTOR_API_KEYS",
         "k=u|interactive_script|general,raw_sql,operator",
     )
-    monkeypatch.setenv("METABASE_API_KEY", "stub")
+    monkeypatch.setenv("APP_METABASE_API_KEY", "stub")
     card_envs = {
-        "CARD_ID_PARTNER_REVENUE": "1001",
-        "CARD_ID_CHANNEL_SPLIT": "1002",
-        "CARD_ID_TOP_PARTNERS": "1003",
-        "CARD_ID_MRR_TREND": "159",
-        "CARD_ID_ARR_AT_RISK": "1006",
-        "CARD_ID_UPSELL_OPPORTUNITIES": "1007",
-        "CARD_ID_REVENUE_COMPARISON": "1008",
-        "CARD_ID_DATA_QUALITY_SIGNALS": "1009",
-        "CARD_ID_LICENSE_QUERY": "1010",
+        "APP_CARD_ID_PARTNER_REVENUE": "1001",
+        "APP_CARD_ID_CHANNEL_SPLIT": "1002",
+        "APP_CARD_ID_TOP_PARTNERS": "1003",
+        "APP_CARD_ID_MRR_TREND": "159",
+        "APP_CARD_ID_ARR_AT_RISK": "1006",
+        "APP_CARD_ID_UPSELL_OPPORTUNITIES": "1007",
+        "APP_CARD_ID_REVENUE_COMPARISON": "1008",
+        "APP_CARD_ID_DATA_QUALITY_SIGNALS": "1009",
+        "APP_CARD_ID_LICENSE_QUERY": "1010",
     }
     for k, v in card_envs.items():
         monkeypatch.setenv(k, v)
 
-    import connector.settings as s
-
-    s._settings = None
-
-    import importlib
-
-    import connector.rpc_config as rc
-
-    importlib.reload(rc)
-
-    for name in (
-        "partner_revenue",
-        "channel_split",
-        "top_partners",
-        "mrr_trend",
-        "arr_at_risk",
-        "upsell_opportunities",
-        "revenue_comparison",
-        "data_quality_signals",
-        "license_query",
-    ):
-        importlib.reload(importlib.import_module(f"connector.rpcs.{name}"))
-    importlib.reload(importlib.import_module("connector.rpcs._registration"))
-
     from connector.app import create_app
+    from connector.settings import load_settings
 
+    load_settings.cache_clear()
     app = create_app(audit_store=InMemoryAuditStore())
 
     canned: dict[int, dict[str, Any]] = {}
@@ -69,9 +47,7 @@ def contract_client(monkeypatch) -> TestClient:
     async def fake_card(self, card_id, *, parameters=None, ignore_cache=True, timeout=None):
         return canned.get(card_id, {"data": {"rows": [], "cols": []}})
 
-    async def fake_dataset(
-        self, *, database_id, sql, parameters=None, template_tags=None, timeout=None
-    ):
+    async def fake_dataset(self, *, database_id, sql, parameters=None, template_tags=None, timeout=None):
         return {
             "data": {"rows": [[1]], "cols": [{"name": "x", "base_type": "type/Integer"}]},
             "row_count": 1,

@@ -6,10 +6,10 @@ from fastapi.testclient import TestClient
 
 @pytest.fixture()
 def client(monkeypatch) -> TestClient:
-    monkeypatch.setenv("CONNECTOR_API_KEYS", "tk=u|interactive_script|general,operator")
-    import connector.settings as s
+    monkeypatch.setenv("APP_CONNECTOR_API_KEYS", "tk=u|interactive_script|general,operator")
+    from connector.settings import load_settings
 
-    s._settings = None
+    load_settings.cache_clear()
     from connector.app import create_app
     from connector.audit.store import InMemoryAuditStore
 

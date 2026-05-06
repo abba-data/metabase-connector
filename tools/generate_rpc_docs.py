@@ -39,9 +39,7 @@ def _type_for(prop: dict[str, Any], components: dict[str, Any]) -> str:
     return p.get("type", "any")
 
 
-def _properties_table(
-    schema: dict[str, Any], components: dict[str, Any], indent: int = 0
-) -> list[str]:
+def _properties_table(schema: dict[str, Any], components: dict[str, Any], indent: int = 0) -> list[str]:
     s = _resolve(schema, components)
     required = set(s.get("required", []))
     props = s.get("properties", {})
@@ -66,8 +64,7 @@ def render_rpc_page(entry: dict[str, Any], components: dict[str, Any]) -> str:
     parts.append(f"# {name}")
     parts.append("")
     parts.append(
-        f"> v{entry['version']} · scope `{entry['required_scope']}` · "
-        f"freshness {entry['freshness_window_days']}d"
+        f"> v{entry['version']} · scope `{entry['required_scope']}` · freshness {entry['freshness_window_days']}d"
     )
     parts.append("")
     parts.append(entry["description"])
@@ -133,8 +130,8 @@ def render_index(entries: list[dict[str, Any]]) -> str:
 
 
 def main() -> int:
-    os.environ.setdefault("AUDIT_STORE", "memory")
-    os.environ.setdefault("CONNECTOR_API_KEYS", "")
+    os.environ.setdefault("APP_AUDIT_STORE", "memory")
+    os.environ.setdefault("APP_CONNECTOR_API_KEYS", "")
     from connector.app import create_app
     from connector.audit.store import InMemoryAuditStore
     from connector.registry import registry
@@ -148,11 +145,7 @@ def main() -> int:
     entries: list[dict[str, Any]] = []
     for d in registry.all():
         input_schema = d.input_model.model_json_schema(ref_template="#/$defs/{model}")
-        output_schema = (
-            d.output_model.model_json_schema(ref_template="#/$defs/{model}")
-            if d.output_model
-            else None
-        )
+        output_schema = d.output_model.model_json_schema(ref_template="#/$defs/{model}") if d.output_model else None
         # Pydantic emits $defs alongside the schema; flatten for the renderer.
         for k, v in (input_schema.get("$defs") or {}).items():
             components[k] = v
@@ -199,11 +192,7 @@ def main() -> int:
 def _rewrite(node: Any) -> Any:
     if isinstance(node, dict):
         return {
-            k: (
-                v.replace("#/components/schemas/", "#/$defs/")
-                if k == "$ref" and isinstance(v, str)
-                else _rewrite(v)
-            )
+            k: (v.replace("#/components/schemas/", "#/$defs/") if k == "$ref" and isinstance(v, str) else _rewrite(v))
             for k, v in node.items()
         }
     if isinstance(node, list):

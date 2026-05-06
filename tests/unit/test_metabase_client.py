@@ -15,9 +15,7 @@ from connector.errors import (
 
 @pytest.fixture()
 async def mb() -> MetabaseClient:
-    client = MetabaseClient(
-        base_url="http://metabase.test", api_key="test-key", timeout_seconds=5.0
-    )
+    client = MetabaseClient(base_url="http://metabase.test", api_key="test-key", timeout_seconds=5.0)
     yield client
     await client.aclose()
 
@@ -30,9 +28,7 @@ async def test_execute_card_success(mb: MetabaseClient) -> None:
             "cols": [{"name": "a"}, {"name": "b"}],
         }
     }
-    route = respx.post("http://metabase.test/api/card/42/query").mock(
-        return_value=httpx.Response(200, json=payload)
-    )
+    route = respx.post("http://metabase.test/api/card/42/query").mock(return_value=httpx.Response(200, json=payload))
     out = await mb.execute_card(42, parameters=[{"type": "category", "value": "x"}])
     assert out == payload
     assert route.called
@@ -44,9 +40,7 @@ async def test_execute_card_success(mb: MetabaseClient) -> None:
 
 @respx.mock
 async def test_execute_card_202_with_empty_body_raises_exceeded(mb: MetabaseClient) -> None:
-    respx.post("http://metabase.test/api/card/42/query").mock(
-        return_value=httpx.Response(202, json={})
-    )
+    respx.post("http://metabase.test/api/card/42/query").mock(return_value=httpx.Response(202, json={}))
     with pytest.raises(ExceededSyncWindowError):
         await mb.execute_card(42)
 
@@ -60,36 +54,28 @@ async def test_execute_card_202_with_completed_body_is_success(mb: MetabaseClien
         "running_time": 11,
         "status": "completed",
     }
-    respx.post("http://metabase.test/api/card/42/query").mock(
-        return_value=httpx.Response(202, json=payload)
-    )
+    respx.post("http://metabase.test/api/card/42/query").mock(return_value=httpx.Response(202, json=payload))
     out = await mb.execute_card(42)
     assert out == payload
 
 
 @respx.mock
 async def test_execute_card_5xx_raises_unavailable(mb: MetabaseClient) -> None:
-    respx.post("http://metabase.test/api/card/42/query").mock(
-        return_value=httpx.Response(503, text="upstream down")
-    )
+    respx.post("http://metabase.test/api/card/42/query").mock(return_value=httpx.Response(503, text="upstream down"))
     with pytest.raises(MetabaseUnavailableError):
         await mb.execute_card(42)
 
 
 @respx.mock
 async def test_execute_card_4xx_raises_metabase_error(mb: MetabaseClient) -> None:
-    respx.post("http://metabase.test/api/card/42/query").mock(
-        return_value=httpx.Response(400, text="bad params")
-    )
+    respx.post("http://metabase.test/api/card/42/query").mock(return_value=httpx.Response(400, text="bad params"))
     with pytest.raises(MetabaseError):
         await mb.execute_card(42)
 
 
 @respx.mock
 async def test_execute_card_timeout_raises_metabase_timeout(mb: MetabaseClient) -> None:
-    respx.post("http://metabase.test/api/card/42/query").mock(
-        side_effect=httpx.TimeoutException("slow")
-    )
+    respx.post("http://metabase.test/api/card/42/query").mock(side_effect=httpx.TimeoutException("slow"))
     with pytest.raises(MetabaseTimeoutError):
         await mb.execute_card(42)
 
@@ -97,9 +83,7 @@ async def test_execute_card_timeout_raises_metabase_timeout(mb: MetabaseClient) 
 @respx.mock
 async def test_execute_dataset_success(mb: MetabaseClient) -> None:
     payload = {"data": {"rows": []}}
-    route = respx.post("http://metabase.test/api/dataset").mock(
-        return_value=httpx.Response(200, json=payload)
-    )
+    route = respx.post("http://metabase.test/api/dataset").mock(return_value=httpx.Response(200, json=payload))
     out = await mb.execute_dataset(database_id=2, sql="SELECT 1")
     assert out == payload
     assert route.called

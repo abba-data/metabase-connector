@@ -53,18 +53,14 @@ def _validate_or_fail(validator: Draft202012Validator, body: Any, *, where: str)
         raise AssertionError(f"{where}: response did not match schema:\n  {msgs}")
 
 
-def test_describe_catalog_response_matches_schema(
-    contract_client: TestClient, openapi_doc: dict[str, Any]
-) -> None:
+def test_describe_catalog_response_matches_schema(contract_client: TestClient, openapi_doc: dict[str, Any]) -> None:
     v = _build_validator(openapi_doc, "/rpc/describe_catalog")
     r = contract_client.post("/rpc/describe_catalog", headers=HEADERS, json={})
     assert r.status_code == 200, r.text
     _validate_or_fail(v, r.json(), where="describe_catalog")
 
 
-def test_partner_revenue_response_matches_schema(
-    contract_client: TestClient, openapi_doc: dict[str, Any]
-) -> None:
+def test_partner_revenue_response_matches_schema(contract_client: TestClient, openapi_doc: dict[str, Any]) -> None:
     _stub_card(
         contract_client.canned,
         1001,
@@ -81,9 +77,7 @@ def test_partner_revenue_response_matches_schema(
     _validate_or_fail(v, r.json(), where="partner_revenue")
 
 
-def test_channel_split_response_matches_schema(
-    contract_client: TestClient, openapi_doc: dict[str, Any]
-) -> None:
+def test_channel_split_response_matches_schema(contract_client: TestClient, openapi_doc: dict[str, Any]) -> None:
     _stub_card(
         contract_client.canned,
         1002,
@@ -107,9 +101,7 @@ def test_channel_split_response_matches_schema(
     _validate_or_fail(v, r.json(), where="channel_split")
 
 
-def test_top_partners_response_matches_schema(
-    contract_client: TestClient, openapi_doc: dict[str, Any]
-) -> None:
+def test_top_partners_response_matches_schema(contract_client: TestClient, openapi_doc: dict[str, Any]) -> None:
     _stub_card(
         contract_client.canned,
         1003,
@@ -126,9 +118,7 @@ def test_top_partners_response_matches_schema(
     _validate_or_fail(v, r.json(), where="top_partners")
 
 
-def test_mrr_trend_response_matches_schema(
-    contract_client: TestClient, openapi_doc: dict[str, Any]
-) -> None:
+def test_mrr_trend_response_matches_schema(contract_client: TestClient, openapi_doc: dict[str, Any]) -> None:
     _stub_card(
         contract_client.canned,
         159,
@@ -141,9 +131,7 @@ def test_mrr_trend_response_matches_schema(
     _validate_or_fail(v, r.json(), where="mrr_trend")
 
 
-def test_arr_at_risk_response_matches_schema(
-    contract_client: TestClient, openapi_doc: dict[str, Any]
-) -> None:
+def test_arr_at_risk_response_matches_schema(contract_client: TestClient, openapi_doc: dict[str, Any]) -> None:
     _stub_card(
         contract_client.canned,
         1006,
@@ -151,16 +139,12 @@ def test_arr_at_risk_response_matches_schema(
         ["key", "arr", "license_count"],
     )
     v = _build_validator(openapi_doc, "/rpc/arr_at_risk")
-    r = contract_client.post(
-        "/rpc/arr_at_risk", headers=HEADERS, json={"horizon_days": 60, "group_by": "partner"}
-    )
+    r = contract_client.post("/rpc/arr_at_risk", headers=HEADERS, json={"horizon_days": 60, "group_by": "partner"})
     assert r.status_code == 200
     _validate_or_fail(v, r.json(), where="arr_at_risk")
 
 
-def test_upsell_opportunities_response_matches_schema(
-    contract_client: TestClient, openapi_doc: dict[str, Any]
-) -> None:
+def test_upsell_opportunities_response_matches_schema(contract_client: TestClient, openapi_doc: dict[str, Any]) -> None:
     _stub_card(
         contract_client.canned,
         1007,
@@ -187,9 +171,7 @@ def test_upsell_opportunities_response_matches_schema(
     _validate_or_fail(v, r.json(), where="upsell_opportunities")
 
 
-def test_revenue_comparison_response_matches_schema(
-    contract_client: TestClient, openapi_doc: dict[str, Any]
-) -> None:
+def test_revenue_comparison_response_matches_schema(contract_client: TestClient, openapi_doc: dict[str, Any]) -> None:
     _stub_card(
         contract_client.canned,
         1008,
@@ -206,9 +188,7 @@ def test_revenue_comparison_response_matches_schema(
     _validate_or_fail(v, r.json(), where="revenue_comparison")
 
 
-def test_data_quality_signals_response_matches_schema(
-    contract_client: TestClient, openapi_doc: dict[str, Any]
-) -> None:
+def test_data_quality_signals_response_matches_schema(contract_client: TestClient, openapi_doc: dict[str, Any]) -> None:
     _stub_card(
         contract_client.canned,
         1009,
@@ -221,9 +201,7 @@ def test_data_quality_signals_response_matches_schema(
     _validate_or_fail(v, r.json(), where="data_quality_signals")
 
 
-def test_license_query_response_matches_schema(
-    contract_client: TestClient, openapi_doc: dict[str, Any]
-) -> None:
+def test_license_query_response_matches_schema(contract_client: TestClient, openapi_doc: dict[str, Any]) -> None:
     _stub_card(
         contract_client.canned,
         1010,
@@ -246,9 +224,7 @@ def test_license_query_response_matches_schema(
     _validate_or_fail(v, r.json(), where="license_query")
 
 
-def test_execute_sql_response_matches_schema(
-    contract_client: TestClient, openapi_doc: dict[str, Any]
-) -> None:
+def test_execute_sql_response_matches_schema(contract_client: TestClient, openapi_doc: dict[str, Any]) -> None:
     v = _build_validator(openapi_doc, "/rpc/execute_sql")
     r = contract_client.post(
         "/rpc/execute_sql",
@@ -259,9 +235,7 @@ def test_execute_sql_response_matches_schema(
     _validate_or_fail(v, r.json(), where="execute_sql")
 
 
-def test_read_audit_response_matches_schema(
-    contract_client: TestClient, openapi_doc: dict[str, Any]
-) -> None:
+def test_read_audit_response_matches_schema(contract_client: TestClient, openapi_doc: dict[str, Any]) -> None:
     v = _build_validator(openapi_doc, "/rpc/read_audit")
     r = contract_client.post("/rpc/read_audit", headers=HEADERS, json={"limit": 50})
     assert r.status_code == 200, r.text
