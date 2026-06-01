@@ -4,13 +4,20 @@ import re
 from datetime import date
 from decimal import Decimal
 from enum import Enum
+from typing import Any
 
 from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, model_validator
 
 from connector.models import Response, Scope
 from connector.registry import RpcDescriptor
-from connector.rpcs._helpers import execute_card_rows, wrap
+from connector.rpcs._helpers import (
+    execute_card_rows,
+    execute_dataset_rows,
+    get_settings_from_request,
+    should_use_new_sql,
+    wrap,
+)
 from connector.security.scopes import require_scope
 
 router = APIRouter()
@@ -102,40 +109,44 @@ DESCRIPTOR = RpcDescriptor(
     input_model=RevenueComparisonInput,
     output_model=RevenueComparisonOutput,
     metabase_card_id=None,
+    sql_file="revenue_comparison.sql",
     required_scope=Scope.GENERAL,
 )
 
 
-def _params(inp: RevenueComparisonInput) -> list[dict]:
+def _coerced_periods(inp: RevenueComparisonInput) -> tuple[Period, Period]:
     a = inp.period_a if isinstance(inp.period_a, Period) else parse_period(str(inp.period_a))
     b = inp.period_b if isinstance(inp.period_b, Period) else parse_period(str(inp.period_b))
+    return a, b
+
+
+def _card_params(inp: RevenueComparisonInput) -> list[dict]:
+    a, b = _coerced_periods(inp)
     return [
-        {
-            "type": "date/single",
-            "target": ["variable", ["template-tag", "period_a_start"]],
-            "value": a.start_date.isoformat(),
-        },
-        {
-            "type": "date/single",
-            "target": ["variable", ["template-tag", "period_a_end"]],
-            "value": a.end_date.isoformat(),
-        },
-        {
-            "type": "date/single",
-            "target": ["variable", ["template-tag", "period_b_start"]],
-            "value": b.start_date.isoformat(),
-        },
-        {
-            "type": "date/single",
-            "target": ["variable", ["template-tag", "period_b_end"]],
-            "value": b.end_date.isoformat(),
-        },
-        {
-            "type": "category",
-            "target": ["variable", ["template-tag", "dimension"]],
-            "value": inp.dimension.value,
-        },
+        {"type": "date/single", "target": ["variable", ["template-tag", "period_a_start"]], "value": a.start_date.isoformat()},
+        {"type": "date/single", "target": ["variable", ["template-tag", "period_a_end"]],   "value": a.end_date.isoformat()},
+        {"type": "date/single", "target": ["variable", ["template-tag", "period_b_start"]], "value": b.start_date.isoformat()},
+        {"type": "date/single", "target": ["variable", ["template-tag", "period_b_end"]],   "value": b.end_date.isoformat()},
+        {"type": "category",    "target": ["variable", ["template-tag", "dimension"]],      "value": inp.dimension.value},
     ]
+
+
+_params = _card_params
+
+
+def _dataset_params(inp: RevenueComparisonInput) -> list[dict]:
+    return _card_params(inp)
+
+
+def _dataset_template_tags(inp: RevenueComparisonInput) -> dict[str, dict[str, Any]]:
+    _ = inp
+    return {
+        "period_a_start": {"id": "period_a_start", "name": "period_a_start", "display-name": "Period A start", "type": "date", "required": True},
+        "period_a_end":   {"id": "period_a_end",   "name": "period_a_end",   "display-name": "Period A end",   "type": "date", "required": True},
+        "period_b_start": {"id": "period_b_start", "name": "period_b_start", "display-name": "Period B start", "type": "date", "required": True},
+        "period_b_end":   {"id": "period_b_end",   "name": "period_b_end",   "display-name": "Period B end",   "type": "date", "required": True},
+        "dimension":      {"id": "dimension",      "name": "dimension",      "display-name": "Dimension",      "type": "text", "required": True},
+    }
 
 
 def _reshape(rows: list[dict]) -> RevenueComparisonOutput:
@@ -180,5 +191,15 @@ async def revenue_comparison(
     body: RevenueComparisonInput,
     consumer=Depends(require_scope(Scope.GENERAL)),
 ) -> Response[RevenueComparisonOutput]:
-    rows = await execute_card_rows(request, DESCRIPTOR, parameters=_params(body))
-    return wrap(request, DESCRIPTOR, _reshape(rows))
+    settings = get_settings_from_request(request)
+    use_new = should_use_new_sql(DESCRIPTOR, settings)
+    if use_new:
+        rows = await execute_dataset_rows(
+            request,
+            DESCRIPTOR,
+            template_tags=_dataset_template_tags(body),
+            parameters=_dataset_params(body),
+        )
+    else:
+        rows = await execute_card_rows(request, DESCRIPTOR, parameters=_card_params(body))
+    return wrap(request, DESCRIPTOR, _reshape(rows), via_sql=use_new)

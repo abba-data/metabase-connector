@@ -2,13 +2,20 @@ from __future__ import annotations
 
 from decimal import Decimal
 from enum import Enum
+from typing import Any
 
 from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, Field
 
 from connector.models import Response, Scope
 from connector.registry import RpcDescriptor
-from connector.rpcs._helpers import execute_card_rows, wrap
+from connector.rpcs._helpers import (
+    execute_card_rows,
+    execute_dataset_rows,
+    get_settings_from_request,
+    should_use_new_sql,
+    wrap,
+)
 from connector.security.scopes import require_scope
 
 router = APIRouter()
@@ -43,11 +50,12 @@ DESCRIPTOR = RpcDescriptor(
     input_model=ArrAtRiskInput,
     output_model=ArrAtRiskOutput,
     metabase_card_id=None,
+    sql_file="arr_at_risk.sql",
     required_scope=Scope.GENERAL,
 )
 
 
-def _params(inp: ArrAtRiskInput) -> list[dict]:
+def _card_params(inp: ArrAtRiskInput) -> list[dict]:
     return [
         {
             "type": "number/=",
@@ -62,6 +70,27 @@ def _params(inp: ArrAtRiskInput) -> list[dict]:
     ]
 
 
+_params = _card_params
+
+
+def _dataset_params(inp: ArrAtRiskInput) -> list[dict]:
+    return _card_params(inp)
+
+
+def _dataset_template_tags(inp: ArrAtRiskInput) -> dict[str, dict[str, Any]]:
+    _ = inp
+    return {
+        "horizon_days": {
+            "id": "horizon_days", "name": "horizon_days",
+            "display-name": "Horizon (days)", "type": "number", "required": True,
+        },
+        "group_by": {
+            "id": "group_by", "name": "group_by",
+            "display-name": "Group by", "type": "text", "required": True,
+        },
+    }
+
+
 @router.post(
     "/rpc/arr_at_risk",
     response_model=Response[ArrAtRiskOutput],
@@ -72,7 +101,17 @@ async def arr_at_risk(
     body: ArrAtRiskInput,
     consumer=Depends(require_scope(Scope.GENERAL)),
 ) -> Response[ArrAtRiskOutput]:
-    rows = await execute_card_rows(request, DESCRIPTOR, parameters=_params(body))
+    settings = get_settings_from_request(request)
+    use_new = should_use_new_sql(DESCRIPTOR, settings)
+    if use_new:
+        rows = await execute_dataset_rows(
+            request,
+            DESCRIPTOR,
+            template_tags=_dataset_template_tags(body),
+            parameters=_dataset_params(body),
+        )
+    else:
+        rows = await execute_card_rows(request, DESCRIPTOR, parameters=_card_params(body))
     breakdown: list[AtRiskBucket] = []
     total = Decimal(0)
     for r in rows:
@@ -84,4 +123,4 @@ async def arr_at_risk(
         breakdown.append(bucket)
         total += bucket.arr
     out = ArrAtRiskOutput(total_arr_at_risk=total, breakdown=breakdown)
-    return wrap(request, DESCRIPTOR, out)
+    return wrap(request, DESCRIPTOR, out, via_sql=use_new)

@@ -2,14 +2,20 @@ from __future__ import annotations
 
 from datetime import date
 from decimal import Decimal
-from typing import Literal
+from typing import Any, Literal
 
 from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, Field, model_validator
 
 from connector.models import Response, Scope
 from connector.registry import RpcDescriptor
-from connector.rpcs._helpers import execute_card_rows, wrap
+from connector.rpcs._helpers import (
+    execute_card_rows,
+    execute_dataset_rows,
+    get_settings_from_request,
+    should_use_new_sql,
+    wrap,
+)
 from connector.security.scopes import require_scope
 
 router = APIRouter()
@@ -50,11 +56,12 @@ DESCRIPTOR = RpcDescriptor(
     input_model=PartnerRevenueInput,
     output_model=PartnerRevenueOutput,
     metabase_card_id=None,
+    sql_file="partner_revenue.sql",
     required_scope=Scope.GENERAL,
 )
 
 
-def _params(inp: PartnerRevenueInput) -> list[dict]:
+def _card_params(inp: PartnerRevenueInput) -> list[dict]:
     return [
         {
             "type": "date/single",
@@ -79,6 +86,44 @@ def _params(inp: PartnerRevenueInput) -> list[dict]:
     ]
 
 
+_params = _card_params
+
+
+def _dataset_params(inp: PartnerRevenueInput) -> list[dict]:
+    return [
+        {
+            "type": "date/single",
+            "target": ["variable", ["template-tag", "start_date"]],
+            "value": inp.start_date.isoformat(),
+        },
+        {
+            "type": "date/single",
+            "target": ["variable", ["template-tag", "end_date"]],
+            "value": inp.end_date.isoformat(),
+        },
+        {
+            "type": "category",
+            "target": ["variable", ["template-tag", "consolidate"]],
+            "value": "true" if inp.consolidate else "false",
+        },
+        {
+            "type": "category",
+            "target": ["variable", ["template-tag", "license_types"]],
+            "value": ",".join(inp.license_types),
+        },
+    ]
+
+
+def _dataset_template_tags(inp: PartnerRevenueInput) -> dict[str, dict[str, Any]]:
+    _ = inp
+    return {
+        "start_date":    {"id": "start_date",    "name": "start_date",    "display-name": "Start date",        "type": "date",   "required": True},
+        "end_date":      {"id": "end_date",      "name": "end_date",      "display-name": "End date",          "type": "date",   "required": True},
+        "consolidate":   {"id": "consolidate",   "name": "consolidate",   "display-name": "Consolidate",       "type": "text",   "required": True},
+        "license_types": {"id": "license_types", "name": "license_types", "display-name": "License types CSV", "type": "text",   "required": True},
+    }
+
+
 @router.post(
     "/rpc/partner_revenue",
     response_model=Response[PartnerRevenueOutput],
@@ -89,6 +134,16 @@ async def partner_revenue(
     body: PartnerRevenueInput,
     consumer=Depends(require_scope(Scope.GENERAL)),
 ) -> Response[PartnerRevenueOutput]:
-    rows = await execute_card_rows(request, DESCRIPTOR, parameters=_params(body))
+    settings = get_settings_from_request(request)
+    use_new = should_use_new_sql(DESCRIPTOR, settings)
+    if use_new:
+        rows = await execute_dataset_rows(
+            request,
+            DESCRIPTOR,
+            template_tags=_dataset_template_tags(body),
+            parameters=_dataset_params(body),
+        )
+    else:
+        rows = await execute_card_rows(request, DESCRIPTOR, parameters=_card_params(body))
     out = PartnerRevenueOutput(rows=[PartnerRevenueRow.model_validate(r) for r in rows])
-    return wrap(request, DESCRIPTOR, out)
+    return wrap(request, DESCRIPTOR, out, via_sql=use_new)

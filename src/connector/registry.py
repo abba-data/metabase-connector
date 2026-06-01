@@ -18,7 +18,11 @@ class RpcDescriptor(BaseModel):
         default=None, description="Pydantic class for the data payload (Response[T].data)."
     )
     metabase_card_id: int | None = Field(
-        default=None, description="Backing Metabase saved-question id; None for runtime-only RPCs."
+        default=None, description="Backing Metabase saved-question id; None for runtime-only or dbt-mart RPCs."
+    )
+    sql_file: str | None = Field(
+        default=None,
+        description="Filename (relative to rpcs/sql/) holding native SQL that reads from dbt_marts.*.",
     )
     required_scope: Scope = Scope.GENERAL
     freshness_window_days: int = 60
@@ -53,6 +57,7 @@ class _Registry:
                 "required_scope": d.required_scope.value,
                 "freshness_window_days": d.freshness_window_days,
                 "source_question_id": d.metabase_card_id,
+                "source_sql_file": d.sql_file,
                 "last_updated": d.last_updated.isoformat() if d.last_updated else None,
                 "deprecated_at": d.deprecated_at.isoformat() if d.deprecated_at else None,
                 "input_schema": d.input_model.model_json_schema(),

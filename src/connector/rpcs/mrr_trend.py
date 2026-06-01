@@ -9,7 +9,13 @@ from pydantic import BaseModel, Field
 
 from connector.models import Response, Scope
 from connector.registry import RpcDescriptor
-from connector.rpcs._helpers import execute_card_rows, wrap
+from connector.rpcs._helpers import (
+    execute_card_rows,
+    execute_dataset_rows,
+    get_settings_from_request,
+    should_use_new_sql,
+    wrap,
+)
 from connector.security.scopes import require_scope
 
 router = APIRouter()
@@ -34,15 +40,20 @@ class MrrTrendOutput(BaseModel):
 DESCRIPTOR = RpcDescriptor(
     name="mrr_trend",
     version="1.0.0",
-    description="Monthly MRR series with customer-type and partner-type breakdowns. Backed by Metabase #159 methodology.",
+    description=(
+        "Monthly MRR series with customer-type and partner-type breakdowns. "
+        "Backed by Metabase #159 methodology (card path) or dbt_marts.mart_mrr_monthly_by_channel (Q159 v2.2)."
+    ),
     input_model=MrrTrendInput,
     output_model=MrrTrendOutput,
     metabase_card_id=None,
+    sql_file="mrr_trend.sql",
     required_scope=Scope.GENERAL,
 )
 
 
-def _params(inp: MrrTrendInput) -> list[dict]:
+def _card_params(inp: MrrTrendInput) -> list[dict]:
+    """Parameter payload for the legacy card path."""
     params: list[dict] = [
         {
             "type": "number/=",
@@ -59,6 +70,36 @@ def _params(inp: MrrTrendInput) -> list[dict]:
             }
         )
     return params
+
+
+# Back-compat re-export for tests / external callers.
+_params = _card_params
+
+
+def _dataset_params(inp: MrrTrendInput) -> list[dict]:
+    """Parameter payload for the native-SQL dataset path. Same shape as the
+    card path here — the differences (booleans/lists) only show up in other RPCs."""
+    return _card_params(inp)
+
+
+def _dataset_template_tags(inp: MrrTrendInput) -> dict[str, dict[str, Any]]:
+    _ = inp
+    return {
+        "months_back": {
+            "id": "months_back",
+            "name": "months_back",
+            "display-name": "Months back",
+            "type": "number",
+            "required": True,
+        },
+        "partner_subtype": {
+            "id": "partner_subtype",
+            "name": "partner_subtype",
+            "display-name": "Partner subtype",
+            "type": "text",
+            "required": False,
+        },
+    }
 
 
 def _reshape(rows: list[dict[str, Any]]) -> list[MrrPoint]:
@@ -94,5 +135,15 @@ async def mrr_trend(
     body: MrrTrendInput,
     consumer=Depends(require_scope(Scope.GENERAL)),
 ) -> Response[MrrTrendOutput]:
-    rows = await execute_card_rows(request, DESCRIPTOR, parameters=_params(body))
-    return wrap(request, DESCRIPTOR, MrrTrendOutput(series=_reshape(rows)))
+    settings = get_settings_from_request(request)
+    use_new = should_use_new_sql(DESCRIPTOR, settings)
+    if use_new:
+        rows = await execute_dataset_rows(
+            request,
+            DESCRIPTOR,
+            template_tags=_dataset_template_tags(body),
+            parameters=_dataset_params(body),
+        )
+    else:
+        rows = await execute_card_rows(request, DESCRIPTOR, parameters=_card_params(body))
+    return wrap(request, DESCRIPTOR, MrrTrendOutput(series=_reshape(rows)), via_sql=use_new)

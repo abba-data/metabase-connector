@@ -68,6 +68,20 @@ class AppSettings(BaseSettings):
     card_id_data_quality_signals: int | None = None
     card_id_license_query: int | None = None
 
+    # dbt-marts cutover. Native SQL files in rpcs/sql/ are run against this DB
+    # via Metabase's /api/dataset endpoint. The per-RPC `use_new_sql_*` flags
+    # let an operator flip a single RPC to the new path (or roll it back to
+    # its card) without redeploying — see _helpers.should_use_new_sql().
+    # RPCs that have NO card wired use the SQL path unconditionally if the
+    # descriptor declares an sql_file (no legacy fallback is even possible).
+    warehouse_database_id: int = 2
+    use_new_sql_mrr_trend: bool = False
+    use_new_sql_channel_split: bool = False
+    use_new_sql_top_partners: bool = False
+    use_new_sql_partner_revenue: bool = False
+    use_new_sql_revenue_comparison: bool = False
+    use_new_sql_arr_at_risk: bool = False
+
     # Datadog
     dd_service: str = "metabase-connector"
     dd_env: str = "local"

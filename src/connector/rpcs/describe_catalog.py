@@ -25,6 +25,7 @@ class CatalogEntry(BaseModel):
     required_scope: str
     freshness_window_days: int
     source_question_id: int | None = None
+    source_sql_file: str | None = None
     last_updated: datetime | None = None
     deprecated_at: datetime | None = None
     input_schema: dict[str, Any] = Field(default_factory=dict)
